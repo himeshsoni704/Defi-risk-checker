@@ -1,38 +1,15 @@
 {
-  "model_id": "QSVC-ZZFeatureMap",
-  "model_version": "2.0",
-  "dataset_version": "2.0",
-  "feature_schema_version": "2.0",
   "model_type": "QSVC",
-  "feature_map": "ZZFeatureMap (reps=1, entanglement=linear, 6 qubits)",
-  "kernel": "FidelityStatevectorKernel (Statevector simulation)",
-  "all_feature_names": [
-    "wallet_age_days",
-    "transaction_count",
-    "avg_transaction_value",
-    "repayment_ratio",
-    "liquidation_count",
-    "borrow_count",
-    "high_risk_tx_count",
-    "protocol_count",
-    "balance_stability",
-    "failed_transactions",
-    "large_tx_ratio",
-    "historical_default"
-  ],
-  "qml_feature_names": [
-    "repayment_ratio",
+  "feature_map": "ZZFeatureMap (reps=1, entanglement=linear, 4 qubits)",
+  "kernel": "FidelityQuantumKernel (Aer Statevector)",
+  "feature_names": [
+    "repayment_history_score",
     "high_risk_tx_count",
     "wallet_age_days",
-    "balance_stability",
-    "liquidation_count",
-    "historical_default"
+    "balance_stability_score"
   ],
-  "n_qubits": 6,
-  "n_train_samples": 60,
-  "test_accuracy": 0.7,
-  "test_auc": 0.8599999999999999,
-  "test_f1": 0.7,
-  "risk_threshold": 50.0,
-  "trained_at": 1790438340
+  "n_train_samples": 52,
+  "test_accuracy": 0.6111111111111112,
+  "test_auc": 0.6790123456790124,
+  "risk_threshold": 50.0
 }

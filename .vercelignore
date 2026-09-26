@@ -1,9 +1,0 @@
-api/
-quantum-ml/
-contracts/
-data/
-requirements.txt
-test_pipeline.py
-*.py
-.env
-.env.example

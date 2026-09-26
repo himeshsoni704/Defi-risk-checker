@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QRISK — Quantum DeFi Credit Intelligence</title>
+  <meta name="description" content="Quantum Support Vector Classifier scores DeFi wallet credit risk. Every decision explained by SHAP and anchored on Ethereum Sepolia." />
+
+  <!-- Inter (UI) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- BubbledotICG-FinePos (retro dot-matrix display) -->
+  <link href="https://db.onlinewebfonts.com/c/8cb707a9b8a73f8a7403336b861c3074?family=BubbledotICG-FinePos" rel="stylesheet" />
+
+  <!-- Font Awesome 6.5.2 -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ─── Fixed video background ──────────────────────────────── -->
+  <div class="bg">
+    <video class="bg-video" autoplay muted loop playsinline>
+      <source
+        src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260809_012548_ef22562c-c0ae-4816-ad9d-f8922af4e6a7.mp4"
+        type="video/mp4"
+      />
+    </video>
+    <div class="bg-overlay"></div>
+  </div>
+
+  <!-- ─── Header ──────────────────────────────────────────────── -->
+  <header class="site-header anim" style="--d:0s" role="banner">
+    <div class="header-inner">
+
+      <button class="logo-btn" aria-label="QRISK home">
+        <img src="logo.webp" alt="" width="52" height="52" class="logo-img" />
+      </button>
+
+      <nav class="nav-pill" aria-label="Primary navigation">
+        <a href="#scorer"  class="nav-link active">Score</a>
+        <a href="#explain" class="nav-link">Explain</a>
+        <a href="#verify"  class="nav-link">Verify</a>
+      </nav>
+
+      <div class="status-pill" id="status-pill" aria-live="polite">
+        <span class="status-dot" id="status-dot"></span>
+        <span class="status-label" id="status-label">Connecting…</span>
+      </div>
+
+    </div>
+
+    <!-- Mobile -->
+    <div class="header-mobile">
+      <button class="logo-btn logo-btn--sm" aria-label="QRISK home">
+        <img src="logo.webp" alt="" width="52" height="52" class="logo-img" />
+      </button>
+      <button class="burger-btn" id="burger-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+        <span class="burger-bar"></span>
+        <span class="burger-bar"></span>
+        <span class="burger-bar"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ─── Hero ────────────────────────────────────────────────── -->
+  <section class="hero" aria-labelledby="hero-hl">
+
+    <!-- Trust row -->
+    <div class="trust-row anim" style="--d:0.05s">
+      <div class="avatar a1"><div class="avatar-inner"><i class="fa-solid fa-atom" aria-hidden="true"></i></div></div>
+      <div class="avatar a2"><div class="avatar-inner"><i class="fa-brands fa-ethereum" aria-hidden="true"></i></div></div>
+      <div class="avatar a3"><div class="avatar-inner"><i class="fa-solid fa-brain" aria-hidden="true"></i></div></div>
+      <div class="trust-pill">Quantum ML · SHAP XAI · Sepolia Testnet</div>
+    </div>
+
+    <!-- Headline -->
+    <h1 class="headline" id="hero-hl">
+      <span class="headline-line anim" style="--d:0.12s">Quantum Risk</span>
+      <span class="headline-line anim" style="--d:0.30s">Designed To Score.</span>
+    </h1>
+
+    <!-- Subhead -->
+    <p class="subhead anim" style="--d:0.28s">
+      A Quantum Support Vector Classifier evaluates DeFi wallet behaviour across four dimensions.
+      Every decision explained by SHAP and anchored on-chain — immutably.
+    </p>
+
+    <!-- CTA -->
+    <a href="#scorer" class="cta-btn anim" style="--d:0.4s" role="button">Analyse a wallet</a>
+
+    <!-- Gauge canvas -->
+    <div class="gauge-wrap anim" style="--d:0.35s" aria-hidden="true">
+      <canvas id="hero-gauge" width="240" height="240"></canvas>
+      <div class="gauge-center">
+        <span id="hero-gauge-value" class="gauge-val">—</span>
+        <span class="gauge-sub">risk score</span>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ─── Stats bar ────────────────────────────────────────────── -->
+  <div class="stats-bar">
+    <div class="stat anim" style="--d:0.50s"><span class="stat-icon">&lt;</span><span class="stat-value" id="st-inference">1.2ms</span><span class="stat-label">Inference</span></div>
+    <div class="stat anim" style="--d:0.58s"><span class="stat-icon">%</span><span class="stat-val2" id="st-accuracy">—</span><span class="stat-label">Test Accuracy</span></div>
+    <div class="stat anim" style="--d:0.66s"><span class="stat-icon">#</span><span class="stat-val2" id="st-dataset">—</span><span class="stat-label">Dataset Rows</span></div>
+    <div class="stat anim" style="--d:0.74s"><span class="stat-icon">*</span><span class="stat-val2" id="st-network">Sepolia</span><span class="stat-label">Network</span></div>
+  </div>
+
+  <!-- ─── Scrollable tool sections ────────────────────────────── -->
+  <div class="tool-sections">
+
+    <!-- 01 Score -->
+    <section class="tool-section" id="scorer" aria-labelledby="scorer-title">
+      <div class="tool-section-inner">
+        <div class="section-label-col">
+          <span class="sec-num">01</span>
+          <h2 class="sec-title" id="scorer-title">Score wallet</h2>
+          <p class="sec-desc">Enter an address or pick a sample wallet to run the QSVC inference.</p>
+        </div>
+        <div class="panel">
+          <div class="field-group">
+            <label class="field-label" for="sample-select">Sample wallets</label>
+            <select id="sample-select" class="field-input field-select">
+              <option value="">— pick a pre-loaded wallet —</option>
+            </select>
+          </div>
+          <div class="or-divider"><span>or enter manually</span></div>
+          <div class="field-group">
+            <label class="field-label" for="wallet-address">Wallet address</label>
+            <input id="wallet-address" type="text" class="field-input field-mono" placeholder="0x…" autocomplete="off" spellcheck="false" />
+          </div>
+
+          <details class="accordion" id="feature-accordion">
+            <summary class="accordion-toggle">
+              <span>Custom features</span>
+              <svg class="chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="feature-grid">
+              <div class="field-group"><label class="field-label" for="f-repayment">Repayment score <span class="range">(0–100)</span></label><input id="f-repayment" type="number" min="0" max="100" step="0.1" class="field-input" placeholder="85" /></div>
+              <div class="field-group"><label class="field-label" for="f-risktx">High-risk TXs</label><input id="f-risktx" type="number" min="0" step="1" class="field-input" placeholder="1" /></div>
+              <div class="field-group"><label class="field-label" for="f-age">Wallet age (days)</label><input id="f-age" type="number" min="0" step="1" class="field-input" placeholder="450" /></div>
+              <div class="field-group"><label class="field-label" for="f-stability">Balance stability <span class="range">(0–100)</span></label><input id="f-stability" type="number" min="0" max="100" step="0.1" class="field-input" placeholder="80" /></div>
+            </div>
+          </details>
+
+          <!-- Gemini key -->
+          <details class="accordion">
+            <summary class="accordion-toggle">
+              <span>Gemini API key <span class="range">(AI insight)</span></span>
+              <svg class="chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </summary>
+            <div class="feature-grid feature-grid--single">
+              <div class="field-group"><label class="field-label" for="gemini-key-input">API key</label><input id="gemini-key-input" type="password" class="field-input field-mono" placeholder="AIza…" autocomplete="off" /></div>
+            </div>
+          </details>
+
+          <button class="action-btn" id="score-btn" aria-busy="false">
+            <span class="btn-text">Run quantum score</span>
+            <span class="btn-spinner" aria-hidden="true"></span>
+          </button>
+
+          <!-- Score result -->
+          <div class="result-card hidden" id="score-result" role="region" aria-label="Score result">
+            <div class="result-top">
+              <div>
+                <span class="result-score-label">Risk score</span>
+                <span class="result-score-val" id="result-score-val">—</span>
+              </div>
+              <span class="decision-badge" id="decision-badge">—</span>
+            </div>
+            <div class="result-meta">
+              <div class="meta-item"><span class="meta-k">Model</span><span class="meta-v" id="meta-model">—</span></div>
+              <div class="meta-item"><span class="meta-k">Timestamp</span><span class="meta-v" id="meta-timestamp">—</span></div>
+              <div class="meta-item meta-full"><span class="meta-k">Decision hash</span><span class="meta-v meta-mono" id="meta-hash">—</span></div>
+            </div>
+            <div class="result-actions">
+              <button class="ghost-btn" id="goto-explain-btn">View explanation</button>
+              <button class="ghost-btn" id="goto-verify-btn">Anchor on-chain</button>
+            </div>
+            <!-- Gemini AI card -->
+            <div class="ai-insight hidden" id="ai-insight" role="region" aria-live="polite">
+              <div class="ai-header">
+                <svg width="14" height="14" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+                  <path d="M14 2C14 2 14 10 6 14C14 14 14 14 14 14C14 14 22 14 22 14C14 10 14 2 14 2Z" fill="#4285F4"/>
+                  <path d="M14 26C14 26 14 18 22 14C14 14 14 14 14 14C14 14 6 14 6 14C14 18 14 26 14 26Z" fill="#34A853"/>
+                  <path d="M2 14C2 14 10 14 14 6C14 14 14 14 14 14C14 14 14 22 14 26C10 18 2 14 2 14Z" fill="#FBBC05"/>
+                  <path d="M26 14C26 14 18 14 14 22C14 14 14 14 14 14C14 14 14 6 14 2C18 10 26 14 26 14Z" fill="#EA4335"/>
+                </svg>
+                <span class="ai-label">Gemini analysis</span>
+                <span class="ai-dots hidden" id="ai-loading-dots"><span></span><span></span><span></span></span>
+              </div>
+              <p class="ai-text" id="ai-insight-text"></p>
+            </div>
+          </div>
+
+          <div class="error-banner hidden" id="score-error" role="alert">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v3.5M8 10.5v.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <span id="score-error-msg"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 Explain -->
+    <section class="tool-section tool-section--alt" id="explain" aria-labelledby="explain-title">
+      <div class="tool-section-inner tool-section-inner--rev">
+        <div class="section-label-col">
+          <span class="sec-num">02</span>
+          <h2 class="sec-title" id="explain-title">SHAP explanation</h2>
+          <p class="sec-desc">Per-feature contribution breakdown via KernelExplainer. Negative = risk-reducing, positive = risk-increasing.</p>
+          <div class="legend">
+            <div class="legend-item"><span class="swatch swatch--green"></span><span>Risk-reducing</span></div>
+            <div class="legend-item"><span class="swatch swatch--red"></span><span>Risk-increasing</span></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="field-group">
+            <label class="field-label" for="explain-address">Wallet address</label>
+            <input id="explain-address" type="text" class="field-input field-mono" placeholder="0x…" autocomplete="off" />
+          </div>
+          <button class="action-btn" id="explain-btn" aria-busy="false">
+            <span class="btn-text">Fetch explanation</span>
+            <span class="btn-spinner" aria-hidden="true"></span>
+          </button>
+          <div class="result-card hidden" id="explain-result" role="region">
+            <div class="explain-header">
+              <div><span class="result-score-label">Base risk</span><span class="explain-base" id="explain-base">—</span></div>
+              <span class="explain-final" id="explain-final-score">Final: —</span>
+            </div>
+            <div class="waterfall" id="waterfall" role="img" aria-label="SHAP waterfall chart"></div>
+            <div class="waterfall-formula" id="waterfall-formula"></div>
+          </div>
+          <div class="error-banner hidden" id="explain-error" role="alert">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v3.5M8 10.5v.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <span id="explain-error-msg"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 Verify -->
+    <section class="tool-section" id="verify" aria-labelledby="verify-title">
+      <div class="tool-section-inner">
+        <div class="section-label-col">
+          <span class="sec-num">03</span>
+          <h2 class="sec-title" id="verify-title">On-chain proof</h2>
+          <p class="sec-desc">Anchor the <code class="ic">keccak256</code> decision hash on Sepolia via <code class="ic">recordDecision</code>, then verify it is intact.</p>
+        </div>
+        <div class="panel">
+          <div class="field-group">
+            <label class="field-label" for="verify-address">Wallet address</label>
+            <input id="verify-address" type="text" class="field-input field-mono" placeholder="0x…" autocomplete="off" />
+          </div>
+          <div class="verify-actions">
+            <button class="action-btn" id="anchor-btn" aria-busy="false">
+              <span class="btn-text">Anchor on-chain</span>
+              <span class="btn-spinner" aria-hidden="true"></span>
+            </button>
+            <button class="action-btn action-btn--outline" id="verify-btn" aria-busy="false">
+              <span class="btn-text">Verify proof</span>
+              <span class="btn-spinner" aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="result-card hidden" id="verify-result" role="region">
+            <div class="verify-status">
+              <span class="verify-icon" id="verify-icon"></span>
+              <span class="verify-status-text" id="verify-status-text">—</span>
+            </div>
+            <div class="result-meta">
+              <div class="meta-item"><span class="meta-k">Network</span><span class="meta-v" id="v-network">—</span></div>
+              <div class="meta-item"><span class="meta-k">Block</span><span class="meta-v" id="v-block">—</span></div>
+              <div class="meta-item meta-full"><span class="meta-k">TX hash</span><span class="meta-v meta-mono" id="v-tx">—</span></div>
+              <div class="meta-item meta-full"><span class="meta-k">Explorer</span><a class="meta-v meta-link" id="v-explorer" href="#" target="_blank" rel="noopener">—</a></div>
+            </div>
+          </div>
+          <div class="error-banner hidden" id="verify-error" role="alert">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v3.5M8 10.5v.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <span id="verify-error-msg"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /.tool-sections -->
+
+  <!-- ─── Footer ──────────────────────────────────────────────── -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span class="footer-mark">QRISK</span>
+      <span class="footer-note">Quantum ML · SHAP XAI · Sepolia Testnet — not financial advice.</span>
+      <span class="footer-model" id="footer-model">QSVC / ZZFeatureMap</span>
+    </div>
+  </footer>
+
+  <!-- Mobile overlay & menu -->
+  <div class="mob-overlay" id="mob-overlay" aria-hidden="true"></div>
+  <nav class="mob-menu" id="mobile-menu" hidden>
+    <a href="#scorer"  class="mob-link active anim-link" style="--li:0">Score</a>
+    <a href="#explain" class="mob-link anim-link" style="--li:1">Explain</a>
+    <a href="#verify"  class="mob-link anim-link" style="--li:2">Verify</a>
+    <div class="mob-status anim-link" style="--li:3">
+      <span class="status-dot" id="mob-status-dot"></span>
+      <span id="mob-status-label">Connecting…</span>
+    </div>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>
