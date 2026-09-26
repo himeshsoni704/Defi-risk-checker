@@ -270,7 +270,9 @@ class RiskOrchestrator:
             if include_llm:
                 # Ask Gemini to generate the text explanation
                 llm_result = self.llm_explainer.generate_explanation(exp, audit)
-                llm_exp = llm_result
+                # The explainer returns its own LLMExplanation class; re-wrap it in
+                # the API schema's model so ExplainResponse validation accepts it.
+                llm_exp = LLMExplanation(**llm_result.model_dump())
 
             return ExplainResponse(
                 wallet_address=stored["wallet_address"],

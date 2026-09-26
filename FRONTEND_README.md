@@ -27,12 +27,16 @@ The frontend talks to `http://localhost:8000` by default. To change it, copy
 
 | Route | Description |
 |---|---|
-| `/` | Hero / landing page |
-| `/score` | Pick a sample wallet or enter an address |
-| `/explain/[wallet]` | SHAP feature-contribution chart + audit |
-| `/audit/[wallet]` | Standalone explanation audit report |
-| `/verify/[wallet]` | Anchor + verify the decision on-chain |
-| `/how-it-works` | Pipeline walkthrough |
+| `/` | Dashboard: quick analysis, system status (`/health`), sample wallets, recent analyses |
+| `/assess?wallet=…` | Risk assessment: score, decision, all 12 features, model provenance, scenario mode |
+| `/explain?wallet=…` | SHAP waterfall and contributions, key drivers, optional Gemini explanation |
+| `/audit?wallet=…` | Explanation audit: faithfulness, stability, sensitivity and how the verdict is formed |
+| `/verify?wallet=…` | Hash comparison, anchoring with confirmation, canonical record |
+| `/models` | QSVC vs. classical baselines from `/compare` |
+
+A guided tour starts on the first visit and can be reopened from the top bar.
+Old links (`/explain/<wallet>`, `/audit/<wallet>`, `/verify/<wallet>`, `/score`,
+`/how-it-works`) redirect to the new pages.
 
 ## For your own client
 
