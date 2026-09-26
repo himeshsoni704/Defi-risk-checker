@@ -1,0 +1,110 @@
+{
+  "contractName": "DecisionProof",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "wallet",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "decisionHash",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "name": "DecisionRecorded",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "wallet",
+          "type": "address"
+        }
+      ],
+      "name": "getDecision",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "decisionHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "decisionHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "recordDecision",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "wallet",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "decisionHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "recordDecisionForWallet",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "wallet",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "decisionHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "verifyDecision",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "verified",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "608060405234801561000f575f80fd5b506102e78061001d5f395ff3fe608060405234801561000f575f80fd5b506004361061004a575f3560e01c80634d2656c41461004e5780637508230014610076578063a95c775f146100be578063b2f808f5146100d3575b5f80fd5b61006161005c366004610259565b6100e6565b60405190151581526020015b60405180910390f35b6100a9610084366004610281565b6001600160a01b03165f90815260208181526040808320546001909252909120549091565b6040805192835260208301919091520161006d565b6100d16100cc36600461029a565b610112565b005b6100d16100e1366004610259565b61011f565b6001600160a01b0382165f908152602081905260408120548214801561010b57508115155b9392505050565b61011c338261012d565b50565b610129828261012d565b5050565b6001600160a01b0382166101815760405162461bcd60e51b8152602060048201526016602482015275496e76616c69642077616c6c6574206164647265737360501b60448201526064015b60405180910390fd5b806101c65760405162461bcd60e51b8152602060048201526015602482015274092dcecc2d8d2c840c8cac6d2e6d2dedc40d0c2e6d605b1b6044820152606401610178565b6001600160a01b0382165f81815260208181526040808320859055600182528083204290819055858452600283529281902080546001600160a01b03191685179055519182528392917f1d878750a3843f69b97c2fb0c3f19099fa931e5d4c3605a935d58ef5a94a6a95910160405180910390a35050565b80356001600160a01b0381168114610254575f80fd5b919050565b5f806040838503121561026a575f80fd5b6102738361023e565b946020939093013593505050565b5f60208284031215610291575f80fd5b61010b8261023e565b5f602082840312156102aa575f80fd5b503591905056fea264697066735822122040b5a5353baf0d1df997298eeb4db9da095abc8e87ae51a5fdca3d240fdc8e9264736f6c63430008140033"
+}

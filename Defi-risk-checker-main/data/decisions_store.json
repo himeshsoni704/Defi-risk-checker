@@ -1,0 +1,1065 @@
+{
+  "0x999999cf1046e68e36e1aa2e0e07105eddd1f08e": {
+    "wallet_address": "0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E",
+    "risk_score": 48.2,
+    "decision": "approve",
+    "decision_hash": "0xe107584b2c85292bdbee61e8ccaf8ec1e0499dbb98840c0e42c04c1892940ce8",
+    "features": {
+      "repayment_history_score": 88.0,
+      "high_risk_tx_count": 0,
+      "wallet_age_days": 850,
+      "balance_stability_score": 92.0
+    },
+    "explanation": {
+      "wallet_address": "0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E",
+      "risk_score": 48.2,
+      "decision": "approve",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": -2.0,
+        "high_risk_tx": -6.2,
+        "wallet_age": -4.3,
+        "balance_stability": -4.4
+      },
+      "input_features": {
+        "repayment_history": 88.0,
+        "high_risk_tx": 0.0,
+        "wallet_age": 850.0,
+        "balance_stability": 92.0
+      },
+      "cached": false
+    },
+    "timestamp": 1790408497,
+    "quantum_model": "QSVC",
+    "on_chain": {
+      "network": "Sepolia Testnet (Simulated Provider)",
+      "status": "confirmed",
+      "tx_hash": "0xe3c7049142a6c65a51b85dc4932d99b469d3acef7529b26a7b45db1de29542c7",
+      "block_number": 6540002,
+      "wallet_address": "0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E",
+      "decision_hash": "0xe107584b2c85292bdbee61e8ccaf8ec1e0499dbb98840c0e42c04c1892940ce8",
+      "timestamp": 1790408514,
+      "explorer_url": "https://sepolia.etherscan.io/tx/0xe3c7049142a6c65a51b85dc4932d99b469d3acef7529b26a7b45db1de29542c7"
+    }
+  },
+  "0xaba6055c4baa05fbc0f7bc699019fef12fc61d33": {
+    "wallet_address": "0xABA6055C4bAA05fbc0f7Bc699019fEf12Fc61d33",
+    "risk_score": 62.9,
+    "decision": "deny",
+    "decision_hash": "0x8c7c8307f096233fba211e7a96f456c1bb9c6b9b6397a0b21edf828317d5fe4a",
+    "features": {
+      "repayment_history_score": 84.5,
+      "high_risk_tx_count": 3,
+      "wallet_age_days": 346,
+      "balance_stability_score": 78.0
+    },
+    "explanation": {
+      "wallet_address": "0xABA6055C4bAA05fbc0f7Bc699019fEf12Fc61d33",
+      "risk_score": 62.9,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": -3.4,
+        "high_risk_tx": 2.9,
+        "wallet_age": -2.5,
+        "balance_stability": 0.8
+      },
+      "input_features": {
+        "repayment_history": 84.5,
+        "high_risk_tx": 3.0,
+        "wallet_age": 346.0,
+        "balance_stability": 78.0
+      },
+      "cached": true
+    },
+    "timestamp": 1790411223,
+    "quantum_model": "QSVC"
+  },
+  "0xee6847c25b322b40e5ace484fd2b2fcda6fcf17f": {
+    "wallet_address": "0xee6847C25b322b40e5ACe484FD2b2fcda6Fcf17f",
+    "risk_score": 54.3,
+    "decision": "deny",
+    "decision_hash": "0xa602b2ffc3a997533e7db4184270e60184cbbef44fd9308be9179ac2510badb7",
+    "features": {
+      "repayment_history_score": 77.1,
+      "high_risk_tx_count": 1,
+      "wallet_age_days": 950,
+      "balance_stability_score": 83.6
+    },
+    "explanation": {
+      "wallet_address": "0xee6847C25b322b40e5ACe484FD2b2fcda6Fcf17f",
+      "risk_score": 54.3,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": -1.9,
+        "high_risk_tx": -9.0,
+        "wallet_age": -8.7,
+        "balance_stability": 8.9
+      },
+      "input_features": {
+        "repayment_history": 77.1,
+        "high_risk_tx": 1.0,
+        "wallet_age": 950.0,
+        "balance_stability": 83.6
+      },
+      "cached": true
+    },
+    "timestamp": 1790411226,
+    "quantum_model": "QSVC"
+  },
+  "0xcd70059a8564943600b289ebd07e9443a73390da": {
+    "wallet_address": "0xCd70059A8564943600b289EbD07e9443A73390Da",
+    "risk_score": 40.5,
+    "decision": "approve",
+    "decision_hash": "0x518abf2fa9714121afc92cf5799b5443ae9242defb2a0c76cd4c70735e5e483b",
+    "features": {
+      "repayment_history_score": 75.2,
+      "high_risk_tx_count": 0,
+      "wallet_age_days": 166,
+      "balance_stability_score": 70.0
+    },
+    "explanation": {
+      "wallet_address": "0xCd70059A8564943600b289EbD07e9443A73390Da",
+      "risk_score": 40.5,
+      "decision": "approve",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": -6.2,
+        "high_risk_tx": -7.5,
+        "wallet_age": -0.7,
+        "balance_stability": -10.1
+      },
+      "input_features": {
+        "repayment_history": 75.2,
+        "high_risk_tx": 0.0,
+        "wallet_age": 166.0,
+        "balance_stability": 70.0
+      },
+      "cached": true
+    },
+    "timestamp": 1790411173,
+    "quantum_model": "QSVC"
+  },
+  "0x9f243d157affd94744a0a866b3d02fecc9d1bdb7": {
+    "wallet_address": "0x9F243d157AFfD94744a0a866b3d02Fecc9D1BdB7",
+    "risk_score": 29.9,
+    "decision": "approve",
+    "decision_hash": "0x8813f18ec3d0ee687b14c3b915de47dcd241573bea6b116a5d9d762260820f2e",
+    "features": {
+      "repayment_history_score": 74.3,
+      "high_risk_tx_count": 2,
+      "wallet_age_days": 188,
+      "balance_stability_score": 69.9
+    },
+    "explanation": {
+      "wallet_address": "0x9F243d157AFfD94744a0a866b3d02Fecc9D1BdB7",
+      "risk_score": 29.9,
+      "decision": "approve",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": -1.4,
+        "high_risk_tx": -9.2,
+        "wallet_age": -11.3,
+        "balance_stability": -13.3
+      },
+      "input_features": {
+        "repayment_history": 74.3,
+        "high_risk_tx": 2.0,
+        "wallet_age": 188.0,
+        "balance_stability": 69.9
+      },
+      "cached": true
+    },
+    "timestamp": 1790412316,
+    "quantum_model": "QSVC",
+    "on_chain": {
+      "network": "Sepolia Testnet (Simulated Provider)",
+      "status": "confirmed",
+      "tx_hash": "0x6c4e58efd93463558409fbe34a2c489594c0c952014c9180ed30cb2b3600531d",
+      "block_number": 6540007,
+      "wallet_address": "0x9F243d157AFfD94744a0a866b3d02Fecc9D1BdB7",
+      "decision_hash": "0x8813f18ec3d0ee687b14c3b915de47dcd241573bea6b116a5d9d762260820f2e",
+      "timestamp": 1790412361,
+      "explorer_url": "https://sepolia.etherscan.io/tx/0x6c4e58efd93463558409fbe34a2c489594c0c952014c9180ed30cb2b3600531d"
+    }
+  },
+  "0x36160d2b2cd4972a8616715e3aa5e3818752d18e": {
+    "wallet_address": "0x36160d2b2cD4972a8616715e3Aa5E3818752D18e",
+    "risk_score": 44.9,
+    "decision": "approve",
+    "decision_hash": "0x5e01b64b9721cb41801327302e0e81439d131d05275061b75c0f0adb3554b723",
+    "features": {
+      "repayment_history_score": 69.4,
+      "high_risk_tx_count": 2,
+      "wallet_age_days": 318,
+      "balance_stability_score": 80.7
+    },
+    "explanation": {
+      "wallet_address": "0x36160d2b2cD4972a8616715e3Aa5E3818752D18e",
+      "risk_score": 44.9,
+      "decision": "approve",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": -5.1,
+        "high_risk_tx": -6.8,
+        "wallet_age": -8.3,
+        "balance_stability": 0.1
+      },
+      "input_features": {
+        "repayment_history": 69.4,
+        "high_risk_tx": 2.0,
+        "wallet_age": 318.0,
+        "balance_stability": 80.7
+      },
+      "cached": true
+    },
+    "timestamp": 1790411232,
+    "quantum_model": "QSVC"
+  },
+  "0xeffeb936ccffc2dc0c7972291277fd7d294b6c01": {
+    "wallet_address": "0xeFfeb936cCffC2DC0C7972291277fD7d294b6C01",
+    "risk_score": 68.6,
+    "decision": "deny",
+    "decision_hash": "0xd7a9184d2bba4bbb5cdadbc720dd6b77389e5c4e5383c30c086f843a27a9e694",
+    "features": {
+      "repayment_history_score": 41.9,
+      "high_risk_tx_count": 3,
+      "wallet_age_days": 136,
+      "balance_stability_score": 34.7
+    },
+    "explanation": {
+      "wallet_address": "0xeFfeb936cCffC2DC0C7972291277fD7d294b6C01",
+      "risk_score": 68.6,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": -2.6,
+        "high_risk_tx": 4.7,
+        "wallet_age": 3.8,
+        "balance_stability": -2.4
+      },
+      "input_features": {
+        "repayment_history": 41.9,
+        "high_risk_tx": 3.0,
+        "wallet_age": 136.0,
+        "balance_stability": 34.7
+      },
+      "cached": true
+    },
+    "timestamp": 1790411242,
+    "quantum_model": "QSVC"
+  },
+  "0x505feabf8e6b7467845cc58fd1a01f4f6011b837": {
+    "wallet_address": "0x505FeaBF8E6B7467845cC58fD1a01f4f6011B837",
+    "risk_score": 50.0,
+    "decision": "deny",
+    "decision_hash": "0xd15980963c12604b610f6f3303887c18e4200f9c89952eec3433320e52e7e4d6",
+    "features": {
+      "repayment_history_score": 84.3,
+      "high_risk_tx_count": 2,
+      "wallet_age_days": 362,
+      "balance_stability_score": 77.1
+    },
+    "explanation": {
+      "wallet_address": "0x505FeaBF8E6B7467845cC58fD1a01f4f6011B837",
+      "risk_score": 50.0,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": -5.2,
+        "high_risk_tx": -7.0,
+        "wallet_age": -4.5,
+        "balance_stability": 1.7
+      },
+      "input_features": {
+        "repayment_history": 84.3,
+        "high_risk_tx": 2.0,
+        "wallet_age": 362.0,
+        "balance_stability": 77.1
+      },
+      "cached": true
+    },
+    "timestamp": 1790412386,
+    "quantum_model": "QSVC",
+    "on_chain": {
+      "network": "Sepolia Testnet (Simulated Provider)",
+      "status": "confirmed",
+      "tx_hash": "0xaf42fa49ecefcbb2f4390afeff0dc1143a8faba6a8339787adc0e3440809ed37",
+      "block_number": 6540007,
+      "wallet_address": "0x505FeaBF8E6B7467845cC58fD1a01f4f6011B837",
+      "decision_hash": "0xd15980963c12604b610f6f3303887c18e4200f9c89952eec3433320e52e7e4d6",
+      "timestamp": 1790412396,
+      "explorer_url": "https://sepolia.etherscan.io/tx/0xaf42fa49ecefcbb2f4390afeff0dc1143a8faba6a8339787adc0e3440809ed37"
+    }
+  },
+  "0x262d48c8d6b8587eb88524727ce7cb272c57ea53": {
+    "wallet_address": "0x262D48c8D6b8587eb88524727cE7cb272C57ea53",
+    "risk_score": 41.9,
+    "decision": "approve",
+    "decision_hash": "0x1f5650de833673cca3069ef9bd263ea52a2cde2837df97317102cfa5e3f25478",
+    "features": {
+      "repayment_history_score": 79.1,
+      "high_risk_tx_count": 3,
+      "wallet_age_days": 179,
+      "balance_stability_score": 100.0
+    },
+    "explanation": {
+      "wallet_address": "0x262D48c8D6b8587eb88524727cE7cb272C57ea53",
+      "risk_score": 41.9,
+      "decision": "approve",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": -7.2,
+        "high_risk_tx": 4.2,
+        "wallet_age": -7.1,
+        "balance_stability": -13.0
+      },
+      "input_features": {
+        "repayment_history": 79.1,
+        "high_risk_tx": 3.0,
+        "wallet_age": 179.0,
+        "balance_stability": 100.0
+      },
+      "cached": true
+    },
+    "timestamp": 1790411242,
+    "quantum_model": "QSVC"
+  },
+  "0x8674b273697fe638d81da2873d713fe171fc03e9": {
+    "wallet_address": "0x8674B273697FE638d81Da2873d713Fe171FC03E9",
+    "risk_score": 79.5,
+    "decision": "deny",
+    "decision_hash": "0xd87e3867f548881a06e4384d17ff474e6417769277c7b4261d372eee1c82520b",
+    "features": {
+      "repayment_history_score": 100.0,
+      "high_risk_tx_count": 4,
+      "wallet_age_days": 573,
+      "balance_stability_score": 80.3
+    },
+    "explanation": {
+      "wallet_address": "0x8674B273697FE638d81Da2873d713Fe171FC03E9",
+      "risk_score": 79.5,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": -3.9,
+        "high_risk_tx": 9.3,
+        "wallet_age": 2.4,
+        "balance_stability": 6.7
+      },
+      "input_features": {
+        "repayment_history": 100.0,
+        "high_risk_tx": 4.0,
+        "wallet_age": 573.0,
+        "balance_stability": 80.3
+      },
+      "cached": true
+    },
+    "timestamp": 1790411243,
+    "quantum_model": "QSVC"
+  },
+  "0x919924647b3d1908e3d10c9f5db9a23935e55fe4": {
+    "wallet_address": "0x919924647b3D1908e3D10C9f5db9a23935E55Fe4",
+    "risk_score": 42.8,
+    "decision": "approve",
+    "decision_hash": "0xbe5adec44bd15cf1426c2e26b85b43fbcaaa8d21c2ce1ddd310c5d4294c04bab",
+    "features": {
+      "repayment_history_score": 58.7,
+      "high_risk_tx_count": 8,
+      "wallet_age_days": 132,
+      "balance_stability_score": 36.6
+    },
+    "explanation": {
+      "wallet_address": "0x919924647b3D1908e3D10C9f5db9a23935E55Fe4",
+      "risk_score": 42.8,
+      "decision": "approve",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": -9.8,
+        "high_risk_tx": -1.6,
+        "wallet_age": -6.0,
+        "balance_stability": -4.9
+      },
+      "input_features": {
+        "repayment_history": 58.7,
+        "high_risk_tx": 8.0,
+        "wallet_age": 132.0,
+        "balance_stability": 36.6
+      },
+      "cached": true
+    },
+    "timestamp": 1790411243,
+    "quantum_model": "QSVC"
+  },
+  "0x7dc8f9f26e0f116c4c28a595228105012f7f474f": {
+    "wallet_address": "0x7dC8f9f26e0f116c4c28a595228105012f7F474f",
+    "risk_score": 66.0,
+    "decision": "deny",
+    "decision_hash": "0x308c65e2bdc5d4efd4aa36ee07bf6560deec153b025cbdf109a907e015cb5c1b",
+    "features": {
+      "repayment_history_score": 76.1,
+      "high_risk_tx_count": 3,
+      "wallet_age_days": 325,
+      "balance_stability_score": 83.7
+    },
+    "explanation": {
+      "wallet_address": "0x7dC8f9f26e0f116c4c28a595228105012f7F474f",
+      "risk_score": 66.0,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": -3.6,
+        "high_risk_tx": 4.0,
+        "wallet_age": -2.1,
+        "balance_stability": 2.7
+      },
+      "input_features": {
+        "repayment_history": 76.1,
+        "high_risk_tx": 3.0,
+        "wallet_age": 325.0,
+        "balance_stability": 83.7
+      },
+      "cached": true
+    },
+    "timestamp": 1790411249,
+    "quantum_model": "QSVC"
+  },
+  "0x2691077d2b9cf140fde1c746bc4bd5e66a8f29d8": {
+    "wallet_address": "0x2691077D2b9CF140fde1c746bc4Bd5E66A8f29d8",
+    "risk_score": 85.3,
+    "decision": "deny",
+    "decision_hash": "0x4584c98d6ee0f0b0e0ca0a8c82f7e064912c01c5983a3ea5c19be2aa3d4a076e",
+    "features": {
+      "repayment_history_score": 18.2,
+      "high_risk_tx_count": 7,
+      "wallet_age_days": 186,
+      "balance_stability_score": 29.2
+    },
+    "explanation": {
+      "wallet_address": "0x2691077D2b9CF140fde1c746bc4Bd5E66A8f29d8",
+      "risk_score": 85.3,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": 4.3,
+        "high_risk_tx": 10.7,
+        "wallet_age": 1.6,
+        "balance_stability": 3.7
+      },
+      "input_features": {
+        "repayment_history": 18.2,
+        "high_risk_tx": 7.0,
+        "wallet_age": 186.0,
+        "balance_stability": 29.2
+      },
+      "cached": true
+    },
+    "timestamp": 1790412369,
+    "quantum_model": "QSVC",
+    "on_chain": {
+      "network": "Sepolia Testnet (Simulated Provider)",
+      "status": "confirmed",
+      "tx_hash": "0x710fa6a3284cf65a58d780bb06be89338f1011432fe124c71bcd4d48ab9b2fb5",
+      "block_number": 6540007,
+      "wallet_address": "0x2691077D2b9CF140fde1c746bc4Bd5E66A8f29d8",
+      "decision_hash": "0x4584c98d6ee0f0b0e0ca0a8c82f7e064912c01c5983a3ea5c19be2aa3d4a076e",
+      "timestamp": 1790412379,
+      "explorer_url": "https://sepolia.etherscan.io/tx/0x710fa6a3284cf65a58d780bb06be89338f1011432fe124c71bcd4d48ab9b2fb5"
+    }
+  },
+  "0xcd25e494e42ede607b0fc68a5a6824b4c30496cf": {
+    "wallet_address": "0xcd25e494E42EDE607b0fc68a5A6824B4C30496Cf",
+    "risk_score": 78.3,
+    "decision": "deny",
+    "decision_hash": "0x9787b4bbaadf1ee01b0ff212e81ae1b9eb70a9bcf2f9a59fa4852ccc9893e7c6",
+    "features": {
+      "repayment_history_score": 44.3,
+      "high_risk_tx_count": 12,
+      "wallet_age_days": 49,
+      "balance_stability_score": 31.4
+    },
+    "explanation": {
+      "wallet_address": "0xcd25e494E42EDE607b0fc68a5A6824B4C30496Cf",
+      "risk_score": 78.3,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": -0.3,
+        "high_risk_tx": 7.3,
+        "wallet_age": 4.4,
+        "balance_stability": 1.9
+      },
+      "input_features": {
+        "repayment_history": 44.3,
+        "high_risk_tx": 12.0,
+        "wallet_age": 49.0,
+        "balance_stability": 31.4
+      },
+      "cached": true
+    },
+    "timestamp": 1790411175,
+    "quantum_model": "QSVC"
+  },
+  "0x680a2bcb3e1f0fe66a955bfde0f26c1c89740400": {
+    "wallet_address": "0x680A2bCb3E1f0FE66A955bfde0F26C1C89740400",
+    "risk_score": 51.1,
+    "decision": "deny",
+    "decision_hash": "0x55ce514f5338e2f73413bba7da3f8690b1574938c5294b2dce60d322eb114c84",
+    "features": {
+      "repayment_history_score": 26.9,
+      "high_risk_tx_count": 7,
+      "wallet_age_days": 259,
+      "balance_stability_score": 39.3
+    },
+    "explanation": {
+      "wallet_address": "0x680A2bCb3E1f0FE66A955bfde0F26C1C89740400",
+      "risk_score": 51.1,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": 4.4,
+        "high_risk_tx": -2.2,
+        "wallet_age": -8.2,
+        "balance_stability": -8.0
+      },
+      "input_features": {
+        "repayment_history": 26.9,
+        "high_risk_tx": 7.0,
+        "wallet_age": 259.0,
+        "balance_stability": 39.3
+      },
+      "cached": true
+    },
+    "timestamp": 1790411199,
+    "quantum_model": "QSVC"
+  },
+  "0xd956bfbbddf99d652d367ffb0925638bbb5638f6": {
+    "wallet_address": "0xd956BfBBddf99D652d367ffb0925638bbB5638F6",
+    "risk_score": 72.6,
+    "decision": "deny",
+    "decision_hash": "0x1fc9eb0ffd15a10e2419cdb99d8c864b1668ea5ba33d12b052ade014728ff0f4",
+    "features": {
+      "repayment_history_score": 21.6,
+      "high_risk_tx_count": 5,
+      "wallet_age_days": 13,
+      "balance_stability_score": 22.9
+    },
+    "explanation": {
+      "wallet_address": "0xd956BfBBddf99D652d367ffb0925638bbB5638F6",
+      "risk_score": 72.6,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": 10.2,
+        "high_risk_tx": 2.6,
+        "wallet_age": 1.9,
+        "balance_stability": -7.2
+      },
+      "input_features": {
+        "repayment_history": 21.6,
+        "high_risk_tx": 5.0,
+        "wallet_age": 13.0,
+        "balance_stability": 22.9
+      },
+      "cached": true
+    },
+    "timestamp": 1790411214,
+    "quantum_model": "QSVC"
+  },
+  "0xe48b79e79173cd7277a719f577f7194b8f5ca059": {
+    "wallet_address": "0xE48B79e79173cd7277A719f577F7194B8f5ca059",
+    "risk_score": 83.0,
+    "decision": "deny",
+    "decision_hash": "0xc0f6b69d8352d5df544b783fa00c95c88d1fd5de546174b49db10d11f7a0eb44",
+    "features": {
+      "repayment_history_score": 36.4,
+      "high_risk_tx_count": 4,
+      "wallet_age_days": 379,
+      "balance_stability_score": 55.4
+    },
+    "explanation": {
+      "wallet_address": "0xE48B79e79173cd7277A719f577F7194B8f5ca059",
+      "risk_score": 83.0,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": 7.9,
+        "high_risk_tx": 4.6,
+        "wallet_age": 1.3,
+        "balance_stability": 4.2
+      },
+      "input_features": {
+        "repayment_history": 36.4,
+        "high_risk_tx": 4.0,
+        "wallet_age": 379.0,
+        "balance_stability": 55.4
+      },
+      "cached": true
+    },
+    "timestamp": 1790411215,
+    "quantum_model": "QSVC"
+  },
+  "0x2eb671a4f731733da716c2334f790e69aea4f13e": {
+    "wallet_address": "0x2eb671A4F731733DA716C2334F790E69AEa4f13E",
+    "risk_score": 61.6,
+    "decision": "deny",
+    "decision_hash": "0x59472a0e0887d1e7239ad70a9e6edb6b5225a80e3bcd9e9cd1a43f3b223f9654",
+    "features": {
+      "repayment_history_score": 44.5,
+      "high_risk_tx_count": 11,
+      "wallet_age_days": 46,
+      "balance_stability_score": 28.9
+    },
+    "explanation": {
+      "wallet_address": "0x2eb671A4F731733DA716C2334F790E69AEa4f13E",
+      "risk_score": 61.6,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": -0.5,
+        "high_risk_tx": 7.8,
+        "wallet_age": 0.3,
+        "balance_stability": -11.0
+      },
+      "input_features": {
+        "repayment_history": 44.5,
+        "high_risk_tx": 11.0,
+        "wallet_age": 46.0,
+        "balance_stability": 28.9
+      },
+      "cached": true
+    },
+    "timestamp": 1790411289,
+    "quantum_model": "QSVC"
+  },
+  "0xf84ba6b4a4a0d1b98e7e0558d625932939b310e8": {
+    "wallet_address": "0xf84ba6B4a4a0d1B98e7E0558d625932939b310E8",
+    "risk_score": 71.2,
+    "decision": "deny",
+    "decision_hash": "0x41d063c14f831bd48a10ee0bffd1fe977721fba6dc27c32463df98af76b262e8",
+    "features": {
+      "repayment_history_score": 14.7,
+      "high_risk_tx_count": 10,
+      "wallet_age_days": 34,
+      "balance_stability_score": 61.5
+    },
+    "explanation": {
+      "wallet_address": "0xf84ba6B4a4a0d1B98e7E0558d625932939b310E8",
+      "risk_score": 71.2,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": -0.1,
+        "high_risk_tx": 2.8,
+        "wallet_age": 6.9,
+        "balance_stability": -3.4
+      },
+      "input_features": {
+        "repayment_history": 14.7,
+        "high_risk_tx": 10.0,
+        "wallet_age": 34.0,
+        "balance_stability": 61.5
+      },
+      "cached": true
+    },
+    "timestamp": 1790411290,
+    "quantum_model": "QSVC"
+  },
+  "0x51aae9bfdeaa522e1cee0016eda5b9f5950bf664": {
+    "wallet_address": "0x51AAE9BfDEaa522E1CEE0016eDa5b9F5950BF664",
+    "risk_score": 60.2,
+    "decision": "deny",
+    "decision_hash": "0xac9692adf6798d9274ef3d11dc491cfb1e880be4a7a7cd179f4d778bd0d0e379",
+    "features": {
+      "repayment_history_score": 37.9,
+      "high_risk_tx_count": 7,
+      "wallet_age_days": 39,
+      "balance_stability_score": 18.1
+    },
+    "explanation": {
+      "wallet_address": "0x51AAE9BfDEaa522E1CEE0016eDa5b9F5950BF664",
+      "risk_score": 60.2,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": -0.9,
+        "high_risk_tx": -5.3,
+        "wallet_age": -2.3,
+        "balance_stability": 3.7
+      },
+      "input_features": {
+        "repayment_history": 37.9,
+        "high_risk_tx": 7.0,
+        "wallet_age": 39.0,
+        "balance_stability": 18.1
+      },
+      "cached": true
+    },
+    "timestamp": 1790411290,
+    "quantum_model": "QSVC"
+  },
+  "0xc1a062dde8e045c744860a092918d5389ad8fb8d": {
+    "wallet_address": "0xC1a062DDE8e045c744860a092918d5389AD8FB8D",
+    "risk_score": 69.9,
+    "decision": "deny",
+    "decision_hash": "0x8bc36e05d10d03105cb6b29631957c2984866606bc4784821a04f43745462dfd",
+    "features": {
+      "repayment_history_score": 18.8,
+      "high_risk_tx_count": 5,
+      "wallet_age_days": 70,
+      "balance_stability_score": 41.4
+    },
+    "explanation": {
+      "wallet_address": "0xC1a062DDE8e045c744860a092918d5389AD8FB8D",
+      "risk_score": 69.9,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": 7.8,
+        "high_risk_tx": 6.9,
+        "wallet_age": -1.4,
+        "balance_stability": -8.4
+      },
+      "input_features": {
+        "repayment_history": 18.8,
+        "high_risk_tx": 5.0,
+        "wallet_age": 70.0,
+        "balance_stability": 41.4
+      },
+      "cached": true
+    },
+    "timestamp": 1790411290,
+    "quantum_model": "QSVC"
+  },
+  "0x33a3cb0bc7aa73fe60e915c11cac0cd609202beb": {
+    "wallet_address": "0x33A3cB0BC7aa73fe60e915c11CAc0CD609202beB",
+    "risk_score": 64.9,
+    "decision": "deny",
+    "decision_hash": "0xc4185a0280a1697d862fc39ac376d1e7bb956345387ca9cbd6aaa5f4b3b21d29",
+    "features": {
+      "repayment_history_score": 22.1,
+      "high_risk_tx_count": 5,
+      "wallet_age_days": 265,
+      "balance_stability_score": 49.8
+    },
+    "explanation": {
+      "wallet_address": "0x33A3cB0BC7aa73fe60e915c11CAc0CD609202beB",
+      "risk_score": 64.9,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": 8.6,
+        "high_risk_tx": -1.8,
+        "wallet_age": -5.5,
+        "balance_stability": -1.4
+      },
+      "input_features": {
+        "repayment_history": 22.1,
+        "high_risk_tx": 5.0,
+        "wallet_age": 265.0,
+        "balance_stability": 49.8
+      },
+      "cached": true
+    },
+    "timestamp": 1790411291,
+    "quantum_model": "QSVC"
+  },
+  "0xade8934867c58fe2cbc3d94a4c02ea1960436926": {
+    "wallet_address": "0xADe8934867c58fE2cbc3D94a4C02EA1960436926",
+    "risk_score": 50.8,
+    "decision": "deny",
+    "decision_hash": "0x4424f0737815ad665a899624e46f4c4ea63a00f4661d78aede487fdfaa1adb28",
+    "features": {
+      "repayment_history_score": 76.6,
+      "high_risk_tx_count": 4,
+      "wallet_age_days": 130,
+      "balance_stability_score": 80.8
+    },
+    "explanation": {
+      "wallet_address": "0xADe8934867c58fE2cbc3D94a4C02EA1960436926",
+      "risk_score": 50.8,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": -8.0,
+        "high_risk_tx": -2.4,
+        "wallet_age": -5.7,
+        "balance_stability": 1.8
+      },
+      "input_features": {
+        "repayment_history": 76.6,
+        "high_risk_tx": 4.0,
+        "wallet_age": 130.0,
+        "balance_stability": 80.8
+      },
+      "cached": false
+    },
+    "timestamp": 1790411258,
+    "quantum_model": "QSVC"
+  },
+  "0xc4d222e69a851886be9cf76698f60b39afed7468": {
+    "wallet_address": "0xc4D222E69a851886bE9cf76698f60b39afeD7468",
+    "risk_score": 23.0,
+    "decision": "approve",
+    "decision_hash": "0x13f35f1777ad6b5ff806e101c28ee32cede44e983346181d9938fbb19c1418be",
+    "features": {
+      "repayment_history_score": 81.8,
+      "high_risk_tx_count": 4,
+      "wallet_age_days": 1388,
+      "balance_stability_score": 79.0
+    },
+    "explanation": {
+      "wallet_address": "0xc4D222E69a851886bE9cf76698f60b39afeD7468",
+      "risk_score": 23.0,
+      "decision": "approve",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": -9.0,
+        "high_risk_tx": -5.0,
+        "wallet_age": -21.9,
+        "balance_stability": -6.1
+      },
+      "input_features": {
+        "repayment_history": 81.8,
+        "high_risk_tx": 4.0,
+        "wallet_age": 1388.0,
+        "balance_stability": 79.0
+      },
+      "cached": false
+    },
+    "timestamp": 1790411266,
+    "quantum_model": "QSVC"
+  },
+  "0xd7fba74ed59077e73dc002b131019021875bbfd9": {
+    "wallet_address": "0xd7fbA74Ed59077E73dc002B131019021875bbfd9",
+    "risk_score": 53.1,
+    "decision": "deny",
+    "decision_hash": "0x4f2e4018e8b8fb7bdebef26a4ebfa3fb769e901668e24e831d87820cd9db692c",
+    "features": {
+      "repayment_history_score": 65.3,
+      "high_risk_tx_count": 2,
+      "wallet_age_days": 1248,
+      "balance_stability_score": 93.0
+    },
+    "explanation": {
+      "wallet_address": "0xd7fbA74Ed59077E73dc002B131019021875bbfd9",
+      "risk_score": 53.1,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": 1.2,
+        "high_risk_tx": -3.5,
+        "wallet_age": 1.4,
+        "balance_stability": -11.0
+      },
+      "input_features": {
+        "repayment_history": 65.3,
+        "high_risk_tx": 2.0,
+        "wallet_age": 1248.0,
+        "balance_stability": 93.0
+      },
+      "cached": false
+    },
+    "timestamp": 1790411275,
+    "quantum_model": "QSVC"
+  },
+  "0x09e2be78bf7570b7e18bd7974164a923ae4ca8ea": {
+    "wallet_address": "0x09E2bE78BF7570B7E18BD7974164a923ae4ca8Ea",
+    "risk_score": 51.8,
+    "decision": "deny",
+    "decision_hash": "0x565f5c4db9f07c24cb80b121fbd4c5572e30bca96ce41261d913aec8d65e9396",
+    "features": {
+      "repayment_history_score": 71.5,
+      "high_risk_tx_count": 4,
+      "wallet_age_days": 351,
+      "balance_stability_score": 84.1
+    },
+    "explanation": {
+      "wallet_address": "0x09E2bE78BF7570B7E18BD7974164a923ae4ca8Ea",
+      "risk_score": 51.8,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": -5.9,
+        "high_risk_tx": 0.6,
+        "wallet_age": -7.2,
+        "balance_stability": -0.7
+      },
+      "input_features": {
+        "repayment_history": 71.5,
+        "high_risk_tx": 4.0,
+        "wallet_age": 351.0,
+        "balance_stability": 84.1
+      },
+      "cached": false
+    },
+    "timestamp": 1790411283,
+    "quantum_model": "QSVC"
+  },
+  "0x661ba0d32cefb805fda56ffce6c5b7828a44b2c9": {
+    "wallet_address": "0x661ba0d32cEfB805Fda56FFCe6c5b7828A44B2C9",
+    "risk_score": 64.5,
+    "decision": "deny",
+    "decision_hash": "0xc0ac545e1bcd1b0076a4560a5c570fc2ae9c5d1529bcc089a525199ee5e32804",
+    "features": {
+      "repayment_history_score": 45.2,
+      "high_risk_tx_count": 7,
+      "wallet_age_days": 58,
+      "balance_stability_score": 18.9
+    },
+    "explanation": {
+      "wallet_address": "0x661ba0d32cEfB805Fda56FFCe6c5b7828A44B2C9",
+      "risk_score": 64.5,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": 0.1,
+        "high_risk_tx": -1.5,
+        "wallet_age": 0.4,
+        "balance_stability": 0.5
+      },
+      "input_features": {
+        "repayment_history": 45.2,
+        "high_risk_tx": 7.0,
+        "wallet_age": 58.0,
+        "balance_stability": 18.9
+      },
+      "cached": false
+    },
+    "timestamp": 1790411306,
+    "quantum_model": "QSVC"
+  },
+  "0x30e383a8e7251cdcb8991405c4a6753073a33036": {
+    "wallet_address": "0x30E383A8E7251cDCb8991405C4a6753073a33036",
+    "risk_score": 83.0,
+    "decision": "deny",
+    "decision_hash": "0x951c97c139092486785e6ebaf67591ab3601a315ff22b0a754588650a8ed1cc6",
+    "features": {
+      "repayment_history_score": 29.2,
+      "high_risk_tx_count": 11,
+      "wallet_age_days": 229,
+      "balance_stability_score": 15.2
+    },
+    "explanation": {
+      "wallet_address": "0x30E383A8E7251cDCb8991405C4a6753073a33036",
+      "risk_score": 83.0,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": 7.3,
+        "high_risk_tx": 11.7,
+        "wallet_age": -4.5,
+        "balance_stability": 3.5
+      },
+      "input_features": {
+        "repayment_history": 29.2,
+        "high_risk_tx": 11.0,
+        "wallet_age": 229.0,
+        "balance_stability": 15.2
+      },
+      "cached": false
+    },
+    "timestamp": 1790411319,
+    "quantum_model": "QSVC"
+  },
+  "0xe18e67017ea0c060c01b6925bf04fb78515ba435": {
+    "wallet_address": "0xE18e67017Ea0c060c01b6925BF04fb78515BA435",
+    "risk_score": 83.0,
+    "decision": "deny",
+    "decision_hash": "0x8473bed790efc60af0552d5722a86927902a5fa06c63f0b7892402d94a42e9c3",
+    "features": {
+      "repayment_history_score": 15.8,
+      "high_risk_tx_count": 8,
+      "wallet_age_days": 93,
+      "balance_stability_score": 32.2
+    },
+    "explanation": {
+      "wallet_address": "0xE18e67017Ea0c060c01b6925BF04fb78515BA435",
+      "risk_score": 83.0,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": -5.4,
+        "high_risk_tx": 4.7,
+        "wallet_age": -4.4,
+        "balance_stability": -1.0
+      },
+      "input_features": {
+        "repayment_history": 15.8,
+        "high_risk_tx": 8.0,
+        "wallet_age": 93.0,
+        "balance_stability": 32.2
+      },
+      "cached": false
+    },
+    "timestamp": 1790411335,
+    "quantum_model": "QSVC"
+  },
+  "0x0acc02df31095a7c87e3f626481aaa7d758fda2e": {
+    "wallet_address": "0x0acc02df31095a7C87E3F626481aaA7D758FdA2E",
+    "risk_score": 58.9,
+    "decision": "deny",
+    "decision_hash": "0x07a90a50b142fe8e35faf4255856101f6f69232d51f0434151ce9d314051a445",
+    "features": {
+      "repayment_history_score": 56.8,
+      "high_risk_tx_count": 7,
+      "wallet_age_days": 60,
+      "balance_stability_score": 6.3
+    },
+    "explanation": {
+      "wallet_address": "0x0acc02df31095a7C87E3F626481aaA7D758FdA2E",
+      "risk_score": 58.9,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": -9.0,
+        "high_risk_tx": -0.3,
+        "wallet_age": -1.0,
+        "balance_stability": -1.5
+      },
+      "input_features": {
+        "repayment_history": 56.8,
+        "high_risk_tx": 7.0,
+        "wallet_age": 60.0,
+        "balance_stability": 6.3
+      },
+      "cached": false
+    },
+    "timestamp": 1790411351,
+    "quantum_model": "QSVC"
+  },
+  "0xafa6c91382d507cd542305367a2ccab49f8d6fb8": {
+    "wallet_address": "0xAFa6C91382D507cD542305367a2ccaB49F8d6fb8",
+    "risk_score": 53.2,
+    "decision": "deny",
+    "decision_hash": "0xab5de6ee5cc3be761a6d4c473df0999612fd70f35bcb00cd2996dc6ea28d8793",
+    "features": {
+      "repayment_history_score": 42.1,
+      "high_risk_tx_count": 8,
+      "wallet_age_days": 226,
+      "balance_stability_score": 40.0
+    },
+    "explanation": {
+      "wallet_address": "0xAFa6C91382D507cD542305367a2ccaB49F8d6fb8",
+      "risk_score": 53.2,
+      "decision": "deny",
+      "base_risk_value": 65.0,
+      "feature_contributions": {
+        "repayment_history": 1.6,
+        "high_risk_tx": 2.0,
+        "wallet_age": -7.6,
+        "balance_stability": -7.8
+      },
+      "input_features": {
+        "repayment_history": 42.1,
+        "high_risk_tx": 8.0,
+        "wallet_age": 226.0,
+        "balance_stability": 40.0
+      },
+      "cached": false
+    },
+    "timestamp": 1790411379,
+    "quantum_model": "QSVC"
+  }
+}
