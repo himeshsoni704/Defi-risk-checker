@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,14 +17,9 @@ export default function RootLayout({
       <body>
         <nav className="nav">
           <div className="container nav-inner">
-            <Link href="/" className="brand">
+            <div className="brand">
               <span className="brand-dot" />
               DeFi Risk Checker
-            </Link>
-            <div className="nav-links">
-              <Link href="/">Home</Link>
-              <Link href="/score">Score a wallet</Link>
-              <Link href="/how-it-works">How it works</Link>
             </div>
           </div>
         </nav>
