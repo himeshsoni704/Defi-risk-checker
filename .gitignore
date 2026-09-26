@@ -51,3 +51,6 @@ Thumbs.db
 
 # Contract artifacts (optional - uncomment if you want to ignore compiled contracts)
 # contracts/artifacts/*.json
+
+# The generic lib/ rule above is for Python build output; keep the frontend data layer tracked.
+!frontend/lib/

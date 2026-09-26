@@ -1,17 +1,22 @@
 # DeFi Risk Checker — Frontend
 
-A multi-page Next.js frontend for the DeFi Risk Checker backend.
+A multi-page Next.js frontend for the DeFi Risk Checker backend. All data comes
+from the API; the typed client lives in `lib/api.ts` and `lib/types.ts`.
 
 ## Pages
 
 | Route | Description |
 |---|---|
-| `/` | Hero / landing page explaining the four-layer pipeline |
-| `/score` | Pick a sample wallet or enter an address and run the pipeline |
-| `/explain/[wallet]` | SHAP feature-contribution chart + explanation audit |
-| `/audit/[wallet]` | Standalone explanation audit report |
-| `/verify/[wallet]` | Anchor the decision hash on-chain and verify it |
-| `/how-it-works` | Walkthrough of the full pipeline |
+| `/` | Dashboard: quick analysis, system status (`/health`), sample wallets, recent analyses |
+| `/assess?wallet=…` | Risk assessment: score, decision, all 12 features, model provenance, scenario mode |
+| `/explain?wallet=…` | SHAP waterfall and contributions, key drivers, optional Gemini explanation |
+| `/audit?wallet=…` | Explanation audit: faithfulness, stability, sensitivity and how the verdict is formed |
+| `/verify?wallet=…` | Hash comparison, anchoring with confirmation, canonical record |
+| `/models` | QSVC vs. classical baselines from `/compare` |
+
+A guided tour starts on the first visit and can be reopened from the top bar.
+Old links (`/explain/<wallet>`, `/audit/<wallet>`, `/verify/<wallet>`, `/score`,
+`/how-it-works`) redirect to the new pages.
 
 ## Running
 
