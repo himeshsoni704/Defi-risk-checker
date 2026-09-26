@@ -3,44 +3,8 @@
 /* ─── Config ─────────────────────────────────────────────────── */
 const API        = 'http://localhost:8000';
 const GEMINI_BASE   = 'https://generativelanguage.googleapis.com/v1beta/models';
-// gemini-2.0-flash-lite and gemini-1.5-flash were retired (404); 3.5-flash-lite is the current lite fallback.
+// gemini-2.0-flash-lite and gemini-1.5-flash were retired (404); gemini-3.5-flash-lite is the backup model.
 const GEMINI_MODELS = ['gemini-3.8-flash', 'gemini-3.5-flash-lite'];
-
-/* ─── Hardcoded fallback analyses ───────────────────────────── */
-const FALLBACK_ANALYSES = {
-  approve: [
-    s => s < 20
-      ? `An unusually clean credit profile. Repayment consistency is in the top percentile and the wallet’s age signals sustained, disciplined on-chain activity. With effectively zero high-risk transaction exposure, the QSVC assigns this address its lowest risk band — approve without reservation.`
-      : null,
-    s => s < 35
-      ? `Strong fundamentals across all four scoring dimensions. The wallet demonstrates multi-year tenure on-chain with a repayment history that sits comfortably above the approval threshold. A minor high-risk transaction count is more than offset by above-average balance stability — net risk is low.`
-      : null,
-    s => s < 50
-      ? `The quantum kernel places this address in the lower half of the risk distribution, driven primarily by solid repayment history and adequate wallet age. Balance stability is the weakest contributor but remains within acceptable bounds. Approve with standard monitoring.`
-      : null,
-  ],
-  deny: [
-    s => s < 65
-      ? `This address sits just above the decision boundary, largely due to compressed wallet age relative to its transaction volume. Repayment history is borderline and balance stability shows short-term volatility that the model weights negatively. Hold exposure pending further on-chain history.`
-      : null,
-    s => s < 80
-      ? `Elevated risk driven by a high-risk transaction count that exceeds the safe cohort median by a material margin. Repayment history is insufficient to counteract this signal, and wallet age does not provide the seasoning needed to validate behavioural patterns. Decline.`
-      : null,
-    s => s >= 80
-      ? `Severe credit risk. The QSVC identifies concentrated exposure across multiple negative features — high-risk transaction frequency is in the top-risk quartile, repayment history is critically low, and balance stability suggests speculative, reactive behaviour. Hard decline; flag for review.`
-      : null,
-  ],
-};
-
-function pickFallback(score, decision) {
-  const pool = FALLBACK_ANALYSES[decision] || FALLBACK_ANALYSES.deny;
-  const match = pool.find(fn => fn(score) !== null);
-  if (match) return match(score);
-  // Generic fallback
-  return decision === 'approve'
-    ? `Wallet profile meets approval criteria across repayment history, transaction risk, age, and balance stability. The quantum feature map places this address in the low-risk cohort — approve with standard monitoring.`
-    : `Multiple risk signals compound above the decision boundary. The quantum kernel weights this address in the elevated-risk cohort. Decline until on-chain history improves.`;
-}
 
 /* ─── State ──────────────────────────────────────────────────── */
 const state = {
@@ -297,10 +261,15 @@ async function callGemini(scoreData, explainData) {
   const textEl    = $('ai-insight-text');
   const dotsEl    = $('ai-loading-dots');
 
-  if (!key || !insightEl || !textEl) return;
+  if (!insightEl || !textEl) return;
+
+  if (!key) {
+    showAiError('Please add your Gemini API key in the "Gemini API key" section above to get an AI analysis of this score.');
+    return;
+  }
 
   textEl.textContent = '';
-  textEl.style.color = '';
+  textEl.classList.remove('ai-text--error');
   showEl(insightEl);
   if (dotsEl) showEl(dotsEl);
 
@@ -327,7 +296,9 @@ async function callGemini(scoreData, explainData) {
 
   const reqBody = JSON.stringify({
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.4, maxOutputTokens: 220 },
+    // gemini-3.8-flash thinks before answering and those tokens count against
+    // maxOutputTokens; 220 left no room for the answer (finishReason MAX_TOKENS).
+    generationConfig: { temperature: 0.4, maxOutputTokens: 1024 },
   });
 
   let lastErr = null;
@@ -351,7 +322,9 @@ async function callGemini(scoreData, explainData) {
         }
 
         const json = await res.json();
-        const text = (json && json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts && json.candidates[0].content.parts[0] && json.candidates[0].content.parts[0].text) || '';
+        const parts = (json && json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts) || [];
+        const text = parts.filter(p => p.text && !p.thought).map(p => p.text).join('').trim();
+        if (!text) { lastErr = new Error(model + ' returned no text'); continue; }
 
         if (dotsEl) hideEl(dotsEl);
         textEl.textContent = '';
@@ -366,13 +339,20 @@ async function callGemini(scoreData, explainData) {
     }
   }
 
-  // All models exhausted — show a realistic hardcoded fallback
+  // Every model failed: say so instead of showing made-up analysis.
+  const reason = lastErr && lastErr.message ? lastErr.message : 'no response';
+  showAiError('Gemini analysis unavailable (' + reason + '). Please check your Gemini API key and try again.');
+}
+
+function showAiError(message) {
+  const insightEl = $('ai-insight');
+  const textEl    = $('ai-insight-text');
+  const dotsEl    = $('ai-loading-dots');
+  if (!insightEl || !textEl) return;
   if (dotsEl) hideEl(dotsEl);
-  const fallback = pickFallback(scoreData.risk_score || 0, scoreData.decision || 'deny');
-  textEl.textContent = '';
-  textEl.style.color = '';
-  let i = 0;
-  const iv = setInterval(() => { textEl.textContent += fallback[i++]; if (i >= fallback.length) clearInterval(iv); }, 14);
+  textEl.textContent = message;
+  textEl.classList.add('ai-text--error');
+  showEl(insightEl);
 }
 
 /* ─── Section 01: Score ──────────────────────────────────────── */
