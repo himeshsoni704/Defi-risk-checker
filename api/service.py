@@ -1,15 +1,6 @@
 """
-Core Orchestration Service for DeFi Risk Checker (v2.0).
-Pipeline:
-  WALLET → Feature Extraction
-         → QSVC (Quantum ML)
-         → SHAP (XAI)
-         → XAI Auditor (Faithfulness · Stability · Sensitivity)
-         → Canonical Record (wallet + model version + score + explanation + audit)
-         → Keccak256
-         → Blockchain
-
-Blockchain now commits to the *entire* decision, not just wallet+score.
+Core Orchestration Service for DeFi Risk Checker.
+Integrates Quantum ML inference, XAI attribution generation, and Web3 cryptographic proof anchoring.
 """
 
 import os
@@ -21,77 +12,49 @@ from typing import Dict, Any, Optional, List
 from eth_account import Account
 from web3 import Web3
 
+# Add root directory to sys.path
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
+# Add quantum-ml and contracts directories
 QML_DIR = os.path.join(BASE_DIR, "quantum-ml")
 CONTRACTS_DIR = os.path.join(BASE_DIR, "contracts")
-for p in [QML_DIR, CONTRACTS_DIR]:
-    if p not in sys.path:
-        sys.path.insert(0, p)
+if QML_DIR not in sys.path:
+    sys.path.insert(0, QML_DIR)
+if CONTRACTS_DIR not in sys.path:
+    sys.path.insert(0, CONTRACTS_DIR)
 
 from qml_model import QuantumRiskModel, FEATURE_NAMES
-from xai_explainer import QuantumXAIExplainer
-from xai_auditor import XAIAuditor
-from llm_explainer import LLMRiskExplainer
-from web3_service import Web3Service, build_canonical_record, compute_canonical_hash
+from xai_explainer import QuantumXAIExplainer, DISPLAY_FEATURE_MAP
+from web3_service import Web3Service, compute_decision_hash
 from api.models import (
-    ScoreRequest, ScoreResponse, ExplainResponse,
-    VerifyWriteResponse, VerifyReadResponse, XAIAuditReport, LLMExplanation
+    ScoreRequest, ScoreResponse,
+    ExplainResponse, VerifyWriteResponse, VerifyReadResponse
 )
 
 DATA_PATH = os.path.join(BASE_DIR, "data", "synthetic_wallets.csv")
 STORE_PATH = os.path.join(BASE_DIR, "data", "decisions_store.json")
-COMPARISON_PATH = os.path.join(BASE_DIR, "quantum-ml", "artifacts", "model_comparison.json")
-
-# Default feature values when nothing is known about the wallet
-_DEFAULTS: Dict[str, Any] = {
-    "wallet_age_days": 280,
-    "transaction_count": 85,
-    "avg_transaction_value": 2.0,
-    "repayment_ratio": 0.65,
-    "liquidation_count": 0,
-    "borrow_count": 10,
-    "high_risk_tx_count": 2,
-    "protocol_count": 4,
-    "balance_stability": 60.0,
-    "failed_transactions": 1,
-    "large_tx_ratio": 0.08,
-    "historical_default": 0,
-}
 
 
 class RiskOrchestrator:
     def __init__(self):
-        print("[Orchestrator] Initializing QSVC model...")
+        print("[Orchestrator] Initializing Quantum ML model and XAI Explainer...")
         self.qml_model = QuantumRiskModel.load()
-
-        print("[Orchestrator] Initializing XAI Explainer...")
         self.xai_explainer = QuantumXAIExplainer(qml_model=self.qml_model)
-
-        print("[Orchestrator] Initializing XAI Auditor...")
-        self.xai_auditor = XAIAuditor(qml_model=self.qml_model, explainer=self.xai_explainer)
-
-        print("[Orchestrator] Initializing LLM Explainer (Gemini)...")
-        self.llm_explainer = LLMRiskExplainer()
-
-        print("[Orchestrator] Initializing Web3 Service...")
         self.web3_service = Web3Service()
-
         self.dataset = self._load_dataset()
         self.decisions_store: Dict[str, Dict[str, Any]] = self._load_decisions_store()
-        self._comparison_cache: Optional[Dict[str, Any]] = self._load_comparison()
-        print("[Orchestrator] System ready.")
-
-    # ── Dataset helpers ──────────────────────────────────────────────
+        print("[Orchestrator] System initialized and ready.")
 
     def _load_dataset(self) -> pd.DataFrame:
+        """Load toy dataset of synthetic wallets."""
         if os.path.exists(DATA_PATH):
             return pd.read_csv(DATA_PATH)
         return pd.DataFrame()
 
     def _load_decisions_store(self) -> Dict[str, Dict[str, Any]]:
+        """Load decisions cache from disk."""
         if os.path.exists(STORE_PATH):
             try:
                 with open(STORE_PATH, "r") as f:
@@ -101,179 +64,130 @@ class RiskOrchestrator:
         return {}
 
     def _save_decisions_store(self):
+        """Save decisions store to disk."""
         os.makedirs(os.path.dirname(STORE_PATH), exist_ok=True)
         try:
             with open(STORE_PATH, "w") as f:
                 json.dump(self.decisions_store, f, indent=2)
         except Exception as e:
-            print(f"[Orchestrator] Warning: Could not save decisions store: {e}")
-
-    def _load_comparison(self) -> Optional[Dict[str, Any]]:
-        if os.path.exists(COMPARISON_PATH):
-            try:
-                with open(COMPARISON_PATH, "r") as f:
-                    return json.load(f)
-            except Exception:
-                pass
-        return None
+            print(f"Warning: Failed to save decisions store: {e}")
 
     def get_wallet_from_dataset(self, wallet_address: str) -> Optional[Dict[str, Any]]:
+        """Look up wallet in synthetic dataset by address (case-insensitive)."""
         if self.dataset.empty:
             return None
         match = self.dataset[self.dataset["wallet_address"].str.lower() == wallet_address.lower()]
-        if match.empty:
-            return None
-        row = match.iloc[0]
-        return {feat: (float(row[feat]) if feat in row else _DEFAULTS[feat]) for feat in FEATURE_NAMES}
+        if not match.empty:
+            row = match.iloc[0]
+            return {
+                "wallet_address": row["wallet_address"],
+                "repayment_history_score": float(row["repayment_history_score"]),
+                "high_risk_tx_count": int(row["high_risk_tx_count"]),
+                "wallet_age_days": int(row["wallet_age_days"]),
+                "balance_stability_score": float(row["balance_stability_score"]),
+                "label": int(row["label"])
+            }
+        return None
 
     def list_sample_wallets(self, limit: int = 10) -> List[Dict[str, Any]]:
+        """Return list of sample wallets from the dataset for quick frontend testing."""
         if self.dataset.empty:
             return []
-        # Split the requested count across both classes so every limit works
-        # (previously odd limits dropped a wallet and limit=1 returned none).
-        n_safe = (max(limit, 0) + 1) // 2
-        n_risky = max(limit, 0) // 2
-        safe = self.dataset[self.dataset["label"] == 0].head(n_safe)
-        risky = self.dataset[self.dataset["label"] == 1].head(n_risky)
-        combined = pd.concat([safe, risky])
-        return combined[["wallet_address", "label"] + FEATURE_NAMES].to_dict(orient="records")
-
-    def get_model_comparison(self) -> Dict[str, Any]:
-        """Return the model comparison table (QSVC vs XGBoost vs Classical SVM)."""
-        if self._comparison_cache:
-            return self._comparison_cache
-        return {
-            "note": "Classical baseline not yet trained. Run `python quantum-ml/classical_baseline.py` to generate.",
-            "QSVC (Quantum)": self.qml_model.metadata,
-        }
-
-    # ── Features from request ────────────────────────────────────────
-
-    def _resolve_features(self, req: ScoreRequest, wallet_addr: str) -> Dict[str, Any]:
-        """Extract a 12-feature dict from the request, dataset, or defaults."""
-        if req.features:
-            raw = req.features.model_dump(exclude_none=True)
-            # Handle legacy field names
-            if "repayment_history_score" in raw and "repayment_ratio" not in raw:
-                raw["repayment_ratio"] = raw.pop("repayment_history_score") / 100.0
-            if "balance_stability_score" in raw and "balance_stability" not in raw:
-                raw["balance_stability"] = raw.pop("balance_stability_score")
-            return {feat: raw.get(feat, _DEFAULTS[feat]) for feat in FEATURE_NAMES}
-
-        db = self.get_wallet_from_dataset(wallet_addr)
-        if db:
-            return {feat: db.get(feat, _DEFAULTS[feat]) for feat in FEATURE_NAMES}
-
-        return dict(_DEFAULTS)
-
-    def _features_to_vector(self, features_dict: Dict[str, Any]) -> list:
-        return [float(features_dict[f]) for f in FEATURE_NAMES]
-
-    # ── Core pipeline ────────────────────────────────────────────────
+        
+        # Take equal mix of safe and risky wallets
+        safe = self.dataset[self.dataset["label"] == 0].head(limit // 2)
+        risky = self.dataset[self.dataset["label"] == 1].head(limit // 2)
+        combined = pd.concat([safe, risky]).to_dict(orient="records")
+        return combined
 
     def score(self, req: ScoreRequest) -> ScoreResponse:
         """
-        Full pipeline: QML → SHAP → XAI Audit → Canonical Record → Keccak256.
-        Returns a ScoreResponse containing the risk score, audit report,
-        canonical record, and decision hash ready for on-chain anchoring.
+        Process risk scoring for a wallet:
+        1. Resolve features (from request or synthetic dataset).
+        2. Run Quantum ML model inference.
+        3. Retrieve/compute XAI feature contributions.
+        4. Compute deterministic keccak256 decision hash.
+        5. Store decision for subsequent verify / explain requests.
         """
-        wallet_addr = req.wallet_address or Account.create().address
-        features_dict = self._resolve_features(req, wallet_addr)
-        feature_vector = self._features_to_vector(features_dict)
+        # Resolve wallet address
+        wallet_addr = req.wallet_address
+        if not wallet_addr:
+            wallet_addr = Account.create().address
 
-        # ── Step 1: Quantum ML inference ─────────────────────────────
+        # Resolve features
+        features_dict = None
+        if req.features:
+            features_dict = req.features.model_dump()
+        else:
+            db_record = self.get_wallet_from_dataset(wallet_addr)
+            if db_record:
+                features_dict = {
+                    "repayment_history_score": db_record["repayment_history_score"],
+                    "high_risk_tx_count": db_record["high_risk_tx_count"],
+                    "wallet_age_days": db_record["wallet_age_days"],
+                    "balance_stability_score": db_record["balance_stability_score"]
+                }
+            else:
+                # Default baseline profile if unknown wallet address
+                features_dict = {
+                    "repayment_history_score": 65.0,
+                    "high_risk_tx_count": 2,
+                    "wallet_age_days": 280,
+                    "balance_stability_score": 60.0
+                }
+
+        feature_vector = [
+            features_dict["repayment_history_score"],
+            features_dict["high_risk_tx_count"],
+            features_dict["wallet_age_days"],
+            features_dict["balance_stability_score"]
+        ]
+
+        # 1. Quantum ML inference (pretrained QSVC)
         risk_score = float(self.qml_model.predict_risk_score(feature_vector)[0])
-        decision = self.qml_model.evaluate_decision(risk_score).upper()
-        # Map to APPROVED / DENIED for clearer display
-        decision_label = "DENIED" if decision == "DENY" else "APPROVED"
+        decision = self.qml_model.evaluate_decision(risk_score)
 
-        # ── Step 2: SHAP explanation ──────────────────────────────────
+        # 2. XAI explanation (SHAP attributions with warm cache)
         explanation = self.xai_explainer.explain(feature_vector, wallet_address=wallet_addr)
 
-        # ── Step 3: XAI Audit ─────────────────────────────────────────
-        audit_report = self.xai_auditor.audit(feature_vector, explanation)
+        # 3. Cryptographic hash: keccak256(wallet_addr + score + explanation_json)
+        decision_hash = compute_decision_hash(wallet_addr, risk_score, explanation)
 
-        # ── Step 4: Model version record ──────────────────────────────
-        model_ver = self.qml_model.version_record()
-
-        # ── Step 5: Canonical record + Keccak256 ─────────────────────
+        # 4. Save to decisions store
         now = int(time.time())
-        canonical = build_canonical_record(
-            wallet_id=wallet_addr,
-            model_version_record=model_ver,
-            risk_score=risk_score,
-            decision=decision_label,
-            features=features_dict,
-            explanation=explanation,
-            audit=audit_report,
-            timestamp=now,
-        )
-        decision_hash = compute_canonical_hash(canonical)
-
-        # ── Step 6: Persist ───────────────────────────────────────────
-        stored = {
+        stored_entry = {
             "wallet_address": wallet_addr,
             "risk_score": risk_score,
-            "decision": decision_label,
+            "decision": decision,
             "decision_hash": decision_hash,
             "features": features_dict,
             "explanation": explanation,
-            "audit": audit_report,
-            "model_version": model_ver,
-            "canonical_record": canonical,
             "timestamp": now,
+            "quantum_model": self.qml_model.metadata.get("model_type", "QSVC with ZZFeatureMap")
         }
-        self.decisions_store[wallet_addr.lower()] = stored
+        self.decisions_store[wallet_addr.lower()] = stored_entry
         self._save_decisions_store()
-
-        # Wrap audit for pydantic
-        audit_pydantic = XAIAuditReport(
-            faithfulness=audit_report["faithfulness"],
-            stability=audit_report["stability"],
-            sensitivity=audit_report["sensitivity"],
-            overall_verdict=audit_report["overall_verdict"],
-            overall_description=audit_report["overall_description"],
-            summary_lines=audit_report["summary_lines"],
-        )
 
         return ScoreResponse(
             wallet_address=wallet_addr,
             risk_score=risk_score,
-            decision=decision_label,
+            decision=decision,
             decision_hash=decision_hash,
             features=features_dict,
-            model_version=model_ver,
-            audit=audit_pydantic,
-            classical_baseline=self.get_model_comparison(),
-            canonical_record=canonical,
-            timestamp=now,
+            quantum_model=stored_entry["quantum_model"],
+            timestamp=now
         )
 
-    def explain(self, wallet_id: str, include_llm: bool = False) -> ExplainResponse:
-        """Return SHAP attribution + audit report for a previously scored wallet."""
+    def explain(self, wallet_id: str) -> ExplainResponse:
+        """
+        Return feature contribution breakdown for a given wallet ID.
+        Uses fast precomputed cache where available.
+        """
         clean_id = wallet_id.strip()
         stored = self.decisions_store.get(clean_id.lower())
 
-        if stored:
+        if stored and "explanation" in stored:
             exp = stored["explanation"]
-            audit = stored.get("audit", {})
-            audit_pydantic = XAIAuditReport(
-                faithfulness=audit.get("faithfulness", {}),
-                stability=audit.get("stability", {}),
-                sensitivity=audit.get("sensitivity", {}),
-                overall_verdict=audit.get("overall_verdict", "UNKNOWN"),
-                overall_description=audit.get("overall_description", ""),
-                summary_lines=audit.get("summary_lines", []),
-            )
-            
-            llm_exp = None
-            if include_llm:
-                # Ask Gemini to generate the text explanation
-                llm_result = self.llm_explainer.generate_explanation(exp, audit)
-                # The explainer returns its own LLMExplanation class; re-wrap it in
-                # the API schema's model so ExplainResponse validation accepts it.
-                llm_exp = LLMExplanation(**llm_result.model_dump())
-
             return ExplainResponse(
                 wallet_address=stored["wallet_address"],
                 risk_score=stored["risk_score"],
@@ -281,63 +195,68 @@ class RiskOrchestrator:
                 base_risk_value=exp["base_risk_value"],
                 feature_contributions=exp["feature_contributions"],
                 input_features=exp["input_features"],
-                audit=audit_pydantic,
-                llm_explanation=llm_exp,
-                cached=True,
+                cached=True
             )
 
-        # Auto-score if in dataset
+        # Check dataset if not yet scored in this session
         db_wallet = self.get_wallet_from_dataset(clean_id)
         if db_wallet:
-            self.score(ScoreRequest(wallet_address=clean_id))
-            return self.explain(clean_id, include_llm)
+            # Score and explain
+            score_res = self.score(ScoreRequest(wallet_address=clean_id))
+            return self.explain(clean_id)
 
-        # Fallback: score with defaults
-        self.score(ScoreRequest(wallet_address=clean_id))
-        return self.explain(clean_id, include_llm)
-
-    def get_audit(self, wallet_id: str) -> Dict[str, Any]:
-        """Return the standalone XAI audit report for a wallet."""
-        clean_id = wallet_id.strip().lower()
-        stored = self.decisions_store.get(clean_id)
-        if stored and "audit" in stored:
-            return stored["audit"]
-        # Score first
-        self.score(ScoreRequest(wallet_address=wallet_id.strip()))
-        return self.decisions_store[clean_id]["audit"]
+        # If completely unknown, return neutral baseline explanation
+        baseline_features = [65.0, 2, 280, 60.0]
+        exp = self.xai_explainer.explain(baseline_features, wallet_address=clean_id)
+        return ExplainResponse(
+            wallet_address=clean_id,
+            risk_score=exp["risk_score"],
+            decision=exp["decision"],
+            base_risk_value=exp["base_risk_value"],
+            feature_contributions=exp["feature_contributions"],
+            input_features=exp["input_features"],
+            cached=exp.get("cached", False)
+        )
 
     def verify_write(self, wallet_id: str) -> VerifyWriteResponse:
-        """Anchor canonical decision hash on-chain."""
+        """
+        Anchor decision hash on-chain via smart contract recordDecision().
+        Returns transaction hash and explorer URL.
+        """
         clean_id = wallet_id.strip()
         stored = self.decisions_store.get(clean_id.lower())
+
         if not stored:
+            # Auto-score if wallet is present in dataset
             self.score(ScoreRequest(wallet_address=clean_id))
             stored = self.decisions_store.get(clean_id.lower())
 
-        receipt = self.web3_service.record_decision_on_chain(
-            wallet_address=clean_id,
-            decision_hash=stored["decision_hash"],
-            canonical_record=stored.get("canonical_record"),
-        )
-        stored["on_chain"] = receipt
+        decision_hash = stored["decision_hash"]
+        on_chain_receipt = self.web3_service.record_decision_on_chain(clean_id, decision_hash)
+
+        # Update stored record with on-chain metadata
+        stored["on_chain"] = on_chain_receipt
         self._save_decisions_store()
 
         return VerifyWriteResponse(
             wallet_address=clean_id,
-            decision_hash=stored["decision_hash"],
-            tx_hash=receipt["tx_hash"],
-            block_number=receipt["block_number"],
-            network=receipt["network"],
-            status=receipt["status"],
-            explorer_url=receipt["explorer_url"],
-            timestamp=receipt["timestamp"],
+            decision_hash=decision_hash,
+            tx_hash=on_chain_receipt["tx_hash"],
+            block_number=on_chain_receipt["block_number"],
+            network=on_chain_receipt["network"],
+            status=on_chain_receipt["status"],
+            explorer_url=on_chain_receipt["explorer_url"],
+            timestamp=on_chain_receipt["timestamp"]
         )
 
     def verify_read(self, wallet_id: str) -> VerifyReadResponse:
-        """Read on-chain hash and verify it matches the stored canonical decision."""
+        """
+        Read on-chain decision hash from smart contract and confirm it matches stored decision.
+        """
         clean_id = wallet_id.strip()
         stored = self.decisions_store.get(clean_id.lower())
         expected_hash = stored.get("decision_hash") if stored else None
+
         result = self.web3_service.verify_decision_on_chain(clean_id, expected_hash=expected_hash)
 
         return VerifyReadResponse(
@@ -349,10 +268,9 @@ class RiskOrchestrator:
             network=result.get("network", "Sepolia"),
             explorer_url=result.get("explorer_url"),
             timestamp=result.get("timestamp"),
-            canonical_record=result.get("canonical_record"),
-            message=result.get("message"),
+            message=result.get("message")
         )
 
 
-# Global singleton (loaded once at startup)
+# Global singleton instance
 orchestrator = RiskOrchestrator()

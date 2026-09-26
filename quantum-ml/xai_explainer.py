@@ -1,8 +1,8 @@
 """
 Explainable AI (XAI) Layer for Quantum Machine Learning DeFi Risk Scoring.
 Uses shap.KernelExplainer to treat the Quantum QSVC as a black-box model and compute
-per-feature attributions for all 12 features.
-Includes intelligent multi-tier caching (in-memory + disk JSON) for fast responses.
+exact per-feature attributions to the overall risk score.
+Includes intelligent multi-tier caching (in-memory + disk JSON) for instant response times.
 """
 
 import os
@@ -14,28 +14,25 @@ import shap
 from typing import Dict, Any, Optional, Union
 import sys
 
+# Ensure quantum-ml path is accessible
 current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.insert(0, current_dir)
 
-from dataset import FEATURE_NAMES, DISPLAY_FEATURE_MAP
-from qml_model import QuantumRiskModel, QML_FEATURES
+from qml_model import QuantumRiskModel, FEATURE_NAMES
 
 CACHE_PATH = os.path.join(os.path.dirname(current_dir), "data", "cached_explanations.json")
 
-# Bump this whenever the feature schema or explanation shape changes so that
-# stale cached entries from an older version are never served.
-CACHE_SCHEMA_VERSION = "2.0"
-_CACHE_PREFIX = f"v{CACHE_SCHEMA_VERSION}:"
+# Friendly display keys requested in spec
+DISPLAY_FEATURE_MAP = {
+    "repayment_history_score": "repayment_history",
+    "high_risk_tx_count": "high_risk_tx",
+    "wallet_age_days": "wallet_age",
+    "balance_stability_score": "balance_stability"
+}
 
 
 class QuantumXAIExplainer:
-    """
-    Wraps shap.KernelExplainer around the QSVC.
-    The SHAP black-box function receives the 6 QML features; we then broadcast
-    the attributions back to the full 12-feature display format.
-    """
-
     def __init__(self, qml_model: Optional[QuantumRiskModel] = None, cache_path: str = CACHE_PATH):
         self.qml_model = qml_model or QuantumRiskModel.load()
         self.cache_path = cache_path
@@ -44,6 +41,7 @@ class QuantumXAIExplainer:
         self._init_explainer()
 
     def _load_cache(self) -> Dict[str, Dict[str, Any]]:
+        """Load persisted cache from disk if available."""
         if os.path.exists(self.cache_path):
             try:
                 with open(self.cache_path, "r") as f:
@@ -53,6 +51,7 @@ class QuantumXAIExplainer:
         return {}
 
     def _save_cache(self):
+        """Persist cache to disk."""
         os.makedirs(os.path.dirname(self.cache_path), exist_ok=True)
         try:
             with open(self.cache_path, "w") as f:
@@ -62,92 +61,82 @@ class QuantumXAIExplainer:
 
     def _init_explainer(self):
         """
-        Initialize shap.KernelExplainer.
-        Background represents low / mid / high risk profiles across QML_FEATURES.
+        Initialize shap.KernelExplainer with a compact background summary.
+        Model function wraps predict_risk_score, returning continuous risk score (0-100).
         """
-        # QML_FEATURES: repayment_ratio, high_risk_tx_count, wallet_age_days,
-        #               balance_stability, liquidation_count, historical_default
+        # Compact 3-point background summary representing low, mid, and high credit profiles
         background_samples = np.array([
-            [0.92, 1.0,  650.0, 80.0, 0.0, 0.0],   # Prime wallet
-            [0.60, 5.0,  280.0, 52.0, 1.0, 0.0],   # Average wallet
-            [0.18, 14.0,  35.0, 20.0, 5.0, 1.0],   # High-risk wallet
+            [80.0, 1.0, 600.0, 80.0],   # Prime wallet
+            [55.0, 4.0, 250.0, 50.0],   # Average wallet
+            [30.0, 10.0, 60.0, 25.0]    # Risky wallet
         ])
 
-        def model_predict_fn(X_qml_raw):
-            # X_qml_raw shape: (n_samples, 6) — QML features only
-            return self.qml_model.predict_risk_score(X_qml_raw)
+        def model_predict_fn(X_raw):
+            return self.qml_model.predict_risk_score(X_raw)
 
         self._explainer = shap.KernelExplainer(model_predict_fn, background_samples)
         self.base_value = float(np.round(self._explainer.expected_value, 1))
 
     @staticmethod
     def _compute_feature_hash(features: list) -> str:
-        features_str = ",".join(f"{float(x):.4f}" for x in features)
+        """Create a deterministic hash for given feature values."""
+        features_str = ",".join(f"{float(x):.2f}" for x in features)
         return hashlib.sha256(features_str.encode()).hexdigest()[:16]
 
     def explain(
         self,
         features: Union[list, np.ndarray],
-        wallet_address: Optional[str] = None,
-        force_recompute: bool = False,
+        wallet_address: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Compute or retrieve SHAP explanations for the given 12-feature vector.
-
-        Returns:
-          wallet_address, risk_score, decision, base_risk_value,
-          feature_contributions (all 12), input_features (all 12), cached
+        Compute or retrieve SHAP explanations for the given wallet features.
+        Returns dictionary with:
+          - wallet_address
+          - risk_score
+          - decision ('approve' or 'deny')
+          - base_risk_value
+          - feature_contributions: {"repayment_history": +25.0, ...}
+          - cached: bool
         """
         feat_list = [float(x) for x in features]
         feat_hash = self._compute_feature_hash(feat_list)
-        cache_key = _CACHE_PREFIX + (wallet_address.lower() if wallet_address else f"hash_{feat_hash}")
+        
+        # Check cache by wallet_address (if provided) or by feature hash
+        cache_key = wallet_address.lower() if wallet_address else f"hash_{feat_hash}"
+        if cache_key in self.cache:
+            entry = dict(self.cache[cache_key])
+            entry["cached"] = True
+            return entry
 
-        if not force_recompute:
-            # In-memory cache hit
-            if cache_key in self.cache:
-                entry = dict(self.cache[cache_key])
-                entry["cached"] = True
-                return entry
-            # Disk cache hit
-            disk_cache = self._load_cache()
-            if cache_key in disk_cache:
-                self.cache.update(disk_cache)
-                entry = dict(disk_cache[cache_key])
-                entry["cached"] = True
-                return entry
+        # Check if cache file on disk has this entry
+        disk_cache = self._load_cache()
+        if cache_key in disk_cache:
+            self.cache.update(disk_cache)
+            entry = dict(disk_cache[cache_key])
+            entry["cached"] = True
+            return entry
 
-        # Extract QML-only features for SHAP
-        qml_indices = [FEATURE_NAMES.index(f) for f in QML_FEATURES]
-        feat_qml = [feat_list[i] for i in qml_indices]
-
-        # Compute risk score via full model (passes QML features internally)
+        # Compute risk score
         risk_score = float(self.qml_model.predict_risk_score(feat_list)[0])
         decision = self.qml_model.evaluate_decision(risk_score)
 
-        # SHAP on the 6-feature QML subspace
-        X_eval = np.array([feat_qml])
-        shap_vals = self._explainer.shap_values(X_eval, nsamples=32)
-
+        # Compute SHAP values via KernelExplainer
+        X_eval = np.array([feat_list])
+        shap_vals = self._explainer.shap_values(X_eval, nsamples=24)
+        
         if isinstance(shap_vals, list):
-            vals_qml = shap_vals[0][0]
+            vals = shap_vals[0][0]
         elif shap_vals.ndim == 2:
-            vals_qml = shap_vals[0]
+            vals = shap_vals[0]
         else:
-            vals_qml = shap_vals
+            vals = shap_vals
 
-        # Build contributions for ALL 12 features
-        # QML features get their SHAP values; remaining 8 features get 0.0
-        qml_contribs = {
-            DISPLAY_FEATURE_MAP.get(QML_FEATURES[i], QML_FEATURES[i]): round(float(vals_qml[i]), 1)
-            for i in range(len(QML_FEATURES))
-        }
-        # Non-QML features contribute 0 to this model's output (not in circuit)
-        non_qml_contribs = {
-            DISPLAY_FEATURE_MAP.get(name, name): 0.0
-            for name in FEATURE_NAMES
-            if name not in QML_FEATURES
-        }
-        contributions = {**qml_contribs, **non_qml_contribs}
+        # Map to requested output structure:
+        # e.g. {"repayment_history": +25, "high_risk_tx": +18, "wallet_age": +12, "balance_stability": -5}
+        contributions = {}
+        for original_name, val in zip(FEATURE_NAMES, vals):
+            friendly_name = DISPLAY_FEATURE_MAP.get(original_name, original_name)
+            contributions[friendly_name] = round(float(val), 1)
 
         result = {
             "wallet_address": wallet_address or "custom_features",
@@ -158,45 +147,50 @@ class QuantumXAIExplainer:
             "input_features": {
                 DISPLAY_FEATURE_MAP.get(name, name): feat_list[i]
                 for i, name in enumerate(FEATURE_NAMES)
-            },
+            }
         }
 
-        # Cache
+        # Store in cache
         self.cache[cache_key] = result
         if wallet_address:
-            self.cache[_CACHE_PREFIX + f"hash_{feat_hash}"] = result
+            # Also cache by feature hash
+            self.cache[f"hash_{feat_hash}"] = result
         self._save_cache()
 
         result["cached"] = False
         return result
 
 
-def precompute_dataset_explanations(max_wallets: int = 100):
-    """Pre-warm the explanation cache for the first max_wallets in the dataset."""
+def precompute_dataset_explanations(max_wallets: int = 150):
+    """Precompute explanations for synthetic wallets to ensure sub-millisecond API responses."""
     print("Loading synthetic wallets dataset...")
     df_path = os.path.join(os.path.dirname(current_dir), "data", "synthetic_wallets.csv")
     df = pd.read_csv(df_path)
-
+    
     explainer = QuantumXAIExplainer()
     print(f"Precomputing explanations for {min(len(df), max_wallets)} wallets...")
-
+    
     count = 0
     for idx, row in df.head(max_wallets).iterrows():
         wallet_addr = row["wallet_address"]
-        feats = [float(row[f]) for f in FEATURE_NAMES]
+        feats = [
+            row["repayment_history_score"],
+            row["high_risk_tx_count"],
+            row["wallet_age_days"],
+            row["balance_stability_score"]
+        ]
         if wallet_addr.lower() not in explainer.cache:
-            explainer.explain(feats, wallet_address=wallet_addr)
+            res = explainer.explain(feats, wallet_address=wallet_addr)
             count += 1
             if count % 10 == 0:
-                print(f"  Precomputed {count} explanations...")
+                print(f"Precomputed {count} explanations...")
 
-    print(f"Done! {count} new explanations cached ({len(explainer.cache)} total).")
+    print(f"Done! {count} new explanations added to cache ({len(explainer.cache)} total in cache).")
 
 
 if __name__ == "__main__":
     explainer = QuantumXAIExplainer()
-    # Prime wallet profile (all 12 features)
-    sample_safe = [650, 120, 1.5, 0.91, 0, 10, 1, 12, 80, 2, 0.05, 0]
+    sample_safe = [85.0, 1.0, 650.0, 85.0]
     exp = explainer.explain(sample_safe, wallet_address="0x71C...DemoSafe")
     print("\nSample Safe Wallet Explanation:")
     print(json.dumps(exp, indent=2))

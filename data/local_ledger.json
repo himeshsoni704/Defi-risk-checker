@@ -1,74 +1,74 @@
 {
+  "0x71c8363e3799173f35733365055170993001569b": {
+    "wallet_address": "0x71c8363E3799173F35733365055170993001569b",
+    "decision_hash": "0xfc6f189cb8c18b7ebac55224deffc4ec985a2898e0189e6c386e464175bf3753",
+    "timestamp": 1790408405,
+    "tx_hash": "0x5a64796044bdf78899fa32f242f61e45625857bdf765275d08cb8d69220637e0",
+    "block_number": 6540001,
+    "network": "Sepolia Testnet (Simulated Provider)"
+  },
   "0x999999cf1046e68e36e1aa2e0e07105eddd1f08e": {
     "wallet_address": "0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E",
-    "decision_hash": "0x82eab7d3b2b049387bde40297038402a9a0d109a9c0828ba093476dcd1449652",
-    "timestamp": 1790439059,
-    "tx_hash": "0xb264f1b1a874c8272b4add554eb070ac7b29e66e975f9bdf2b32750e295b740a",
+    "decision_hash": "0xe107584b2c85292bdbee61e8ccaf8ec1e0499dbb98840c0e42c04c1892940ce8",
+    "timestamp": 1790408514,
+    "tx_hash": "0xe3c7049142a6c65a51b85dc4932d99b469d3acef7529b26a7b45db1de29542c7",
     "block_number": 6540002,
-    "network": "Sepolia Testnet (Simulated Provider)",
-    "schema_version": "2.0",
-    "canonical_record": {
-      "wallet_id": "0x999999cf1046e68e36e1aa2e0e07105eddd1f08e",
-      "model": {
-        "model_id": "QSVC-ZZFeatureMap",
-        "model_version": "2.0",
-        "dataset_version": "2.0",
-        "feature_schema_version": "2.0",
-        "qml_features": [
-          "repayment_ratio",
-          "high_risk_tx_count",
-          "wallet_age_days",
-          "balance_stability",
-          "liquidation_count",
-          "historical_default"
-        ],
-        "n_qubits": 6,
-        "trained_at": 1790438340
-      },
-      "risk_score": 64.9,
-      "decision": "DENIED",
-      "features": {
-        "avg_transaction_value": 2.0,
-        "balance_stability": 92.0,
-        "borrow_count": 10,
-        "failed_transactions": 1,
-        "high_risk_tx_count": 0,
-        "historical_default": 0,
-        "large_tx_ratio": 0.08,
-        "liquidation_count": 0,
-        "protocol_count": 4,
-        "repayment_ratio": 0.88,
-        "transaction_count": 85,
-        "wallet_age_days": 850
-      },
-      "explanation": {
-        "base_value": 49.1,
-        "feature_contributions": {
-          "avg_tx_value": 0.0,
-          "balance_stability": 1.2,
-          "borrow_count": 0.0,
-          "failed_tx": 0.0,
-          "high_risk_tx": 5.3,
-          "historical_default": 0.5,
-          "large_tx_ratio": 0.0,
-          "liquidations": -5.2,
-          "protocol_diversity": 0.0,
-          "repayment_ratio": 2.3,
-          "tx_count": 0.0,
-          "wallet_age": 11.7
-        }
-      },
-      "audit": {
-        "faithfulness": 0.333,
-        "faithfulness_verdict": "LOW",
-        "stability": 0.774,
-        "stability_verdict": "HIGH",
-        "sensitivity": 0.0,
-        "sensitivity_verdict": "LOW",
-        "overall_verdict": "QUESTIONABLE"
-      },
-      "timestamp": 1790439059,
-      "schema_version": "2.0"
-    }
+    "network": "Sepolia Testnet (Simulated Provider)"
+  },
+  "0xaba6055c4baa05fbc0f7bc699019fef12fc61d33": {
+    "wallet_address": "0xABA6055C4bAA05fbc0f7Bc699019fEf12Fc61d33",
+    "decision_hash": "0x8c7c8307f096233fba211e7a96f456c1bb9c6b9b6397a0b21edf828317d5fe4a",
+    "timestamp": 1790408795,
+    "tx_hash": "0x5cb19444317a0020dbc762d775ce37dcb3aa5c8d4c3c63b460fce0628fdaf13d",
+    "block_number": 6540003,
+    "network": "Sepolia Testnet (Simulated Provider)"
+  },
+  "0x9f243d157affd94744a0a866b3d02fecc9d1bdb7": {
+    "wallet_address": "0x9F243d157AFfD94744a0a866b3d02Fecc9D1BdB7",
+    "decision_hash": "0x8813f18ec3d0ee687b14c3b915de47dcd241573bea6b116a5d9d762260820f2e",
+    "timestamp": 1790412361,
+    "tx_hash": "0x6c4e58efd93463558409fbe34a2c489594c0c952014c9180ed30cb2b3600531d",
+    "block_number": 6540007,
+    "network": "Sepolia Testnet (Simulated Provider)"
+  },
+  "0x2691077d2b9cf140fde1c746bc4bd5e66a8f29d8": {
+    "wallet_address": "0x2691077D2b9CF140fde1c746bc4Bd5E66A8f29d8",
+    "decision_hash": "0x4584c98d6ee0f0b0e0ca0a8c82f7e064912c01c5983a3ea5c19be2aa3d4a076e",
+    "timestamp": 1790412379,
+    "tx_hash": "0x710fa6a3284cf65a58d780bb06be89338f1011432fe124c71bcd4d48ab9b2fb5",
+    "block_number": 6540007,
+    "network": "Sepolia Testnet (Simulated Provider)"
+  },
+  "0x505feabf8e6b7467845cc58fd1a01f4f6011b837": {
+    "wallet_address": "0x505FeaBF8E6B7467845cC58fD1a01f4f6011B837",
+    "decision_hash": "0xd15980963c12604b610f6f3303887c18e4200f9c89952eec3433320e52e7e4d6",
+    "timestamp": 1790412396,
+    "tx_hash": "0xaf42fa49ecefcbb2f4390afeff0dc1143a8faba6a8339787adc0e3440809ed37",
+    "block_number": 6540007,
+    "network": "Sepolia Testnet (Simulated Provider)"
+  },
+  "0x680a2bcb3e1f0fe66a955bfde0f26c1c89740400": {
+    "wallet_address": "0x680A2bCb3E1f0FE66A955bfde0F26C1C89740400",
+    "decision_hash": "0x55ce514f5338e2f73413bba7da3f8690b1574938c5294b2dce60d322eb114c84",
+    "timestamp": 1790447610,
+    "tx_hash": "0x5b34df4f6bc65de70892e4f1017280b4de1aa96b2e680562d133458c7bdbfdba",
+    "block_number": 6540007,
+    "network": "Sepolia Testnet (Simulated Provider)"
+  },
+  "0xcd70059a8564943600b289ebd07e9443a73390da": {
+    "wallet_address": "0xCd70059A8564943600b289EbD07e9443A73390Da",
+    "decision_hash": "0x518abf2fa9714121afc92cf5799b5443ae9242defb2a0c76cd4c70735e5e483b",
+    "timestamp": 1790448568,
+    "tx_hash": "0x5ecdbde512579f6e30d6cfba02b1f4985b5fa3abcd0a3751ecdb35bad1bf5e96",
+    "block_number": 6540009,
+    "network": "Sepolia Testnet (Simulated Provider)"
+  },
+  "0x36160d2b2cd4972a8616715e3aa5e3818752d18e": {
+    "wallet_address": "0x36160d2b2cD4972a8616715e3Aa5E3818752D18e",
+    "decision_hash": "0x5e01b64b9721cb41801327302e0e81439d131d05275061b75c0f0adb3554b723",
+    "timestamp": 1790449622,
+    "tx_hash": "0x329947985fc183cbdeaf2808f22b002df367ef1c1653bd98e85eccdbff2ed59f",
+    "block_number": 6540009,
+    "network": "Sepolia Testnet (Simulated Provider)"
   }
 }
