@@ -1,320 +1,232 @@
-# DeFi Risk Checker - Frontend API Contract
+# DeFi Risk Checker — API Contract (v2.0)
 
-This document defines the REST API contract for the **DeFi Risk Checker** backend. 
-Frontend developers can test all endpoints interactively at: **`http://localhost:8000/docs`** (Swagger UI).
+REST API for the DeFi Risk Checker backend. It scores a wallet with a quantum
+ML model (QSVC), explains the score with SHAP, audits the explanation, and can
+anchor the full record on-chain.
+
+Base URL: `http://localhost:8000` — interactive docs at `/docs`.
+
+## Pipeline
+
+```
+WALLET → 12 features → QSVC risk score → SHAP explanation
+       → XAI audit (faithfulness · stability · sensitivity)
+       → canonical JSON record → Keccak256 → blockchain
+```
+
+## Endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/` | Service info + endpoint map |
+| `GET` | `/health` | System status, model metadata, provider, cache sizes |
+| `GET` | `/wallets?limit=10` | Sample wallets from the dataset (safe + risky mix) |
+| `POST` | `/score` | Full pipeline for one wallet |
+| `GET` | `/explain/{wallet_id}` | SHAP attributions + audit report |
+| `GET` | `/explain/llm/{wallet_id}` | Same, plus the optional Gemini explanation |
+| `GET` | `/audit/{wallet_id}` | Standalone explanation audit report |
+| `GET` | `/compare` | QSVC vs XGBoost vs classical SVM table |
+| `POST` | `/verify/{wallet_id}` | Anchor the canonical hash on-chain |
+| `GET` | `/verify/{wallet_id}` | Verify the on-chain hash against the record |
 
 ---
 
-## 1. Overview & Architecture Flow
+### `GET /health`
 
-```
-+------------------+         +--------------------+         +-----------------------+
-|  Frontend Client | ------> |  POST /score       | ------> |  Quantum ML Model     |
-|  (Wallet UI)     |         |  (Wallet Features) |         |  (QSVC 0-100 Score)   |
-+------------------+         +--------------------+         +-----------------------+
-         |                             |                                |
-         |                             v                                v
-         |                   +--------------------+         +-----------------------+
-         +-----------------> |  GET /explain/:id  | <------ |  XAI Layer            |
-         |                   |  (Attributions)    |         |  (SHAP Feature Shifts)|
-         |                   +--------------------+         +-----------------------+
-         |                             |                                |
-         v                             v                                v
-+------------------+         +--------------------+         +-----------------------+
-|  POST /verify/:id| ------> |  On-Chain Anchor   | ------> |  Smart Contract       |
-|  GET /verify/:id | <------ |  (Keccak256 Proof) |         |  (Sepolia Testnet)    |
-+------------------+         +--------------------+         +-----------------------+
-```
-
----
-
-## 2. Endpoints Specification
-
-### 2.1 Get System Health & Quantum Status
-Check whether the backend, quantum model, and blockchain provider are online.
-
-- **Method**: `GET`
-- **Path**: `/health`
-- **Headers**: `Accept: application/json`
-- **Response** (`200 OK`):
 ```json
 {
   "status": "healthy",
   "quantum_model": {
-    "type": "QSVC",
-    "kernel": "FidelityQuantumKernel (Aer Statevector)",
-    "feature_map": "ZZFeatureMap (reps=1, entanglement=linear, 4 qubits)",
-    "test_accuracy": 0.611,
-    "test_auc": 0.679
+    "model_id": "QSVC-ZZFeatureMap",
+    "model_version": "2.0",
+    "dataset_version": "2.0",
+    "feature_schema_version": "2.0",
+    "n_qubits": 6,
+    "feature_map": "ZZFeatureMap (reps=1, entanglement=linear, 6 qubits)",
+    "kernel": "FidelityStatevectorKernel (Statevector simulation)",
+    "test_accuracy": 0.7,
+    "test_auc": 0.86,
+    "test_f1": 0.7
   },
   "web3": {
     "is_live_sepolia": false,
-    "network": "Sepolia Testnet (Simulated Provider)",
+    "network": "Sepolia (Simulated Provider)",
     "explorer_base": "https://sepolia.etherscan.io"
   },
-  "dataset_rows": 300,
-  "cached_explanations": 24,
-  "cached_decisions": 5
+  "dataset_rows": 2000,
+  "cached_explanations": 0,
+  "cached_decisions": 0
 }
 ```
 
 ---
 
-### 2.2 Get Sample Wallets (Dataset Helper)
-Fetches pre-populated wallets from the toy dataset. Ideal for populating demo dropdowns so judges can click sample wallets without manually typing addresses.
+### `GET /wallets?limit=10`
 
-- **Method**: `GET`
-- **Path**: `/wallets?limit=10`
-- **Query Params**:
-  - `limit` (integer, optional, default: `10`): Number of sample wallets to return.
-- **Response** (`200 OK`):
+Returns up to `limit` wallets, alternating safe (label 0) and risky (label 1).
+
 ```json
 [
   {
-    "wallet_address": "0xABA6055C4bAA05fbc0f7Bc699019fEf12Fc61d33",
-    "repayment_history_score": 83.2,
-    "high_risk_tx_count": 0,
-    "wallet_age_days": 810,
-    "balance_stability_score": 89.4,
-    "label": 0
-  },
-  {
-    "wallet_address": "0x37aF6b1101968840d4212574A1A7D187d25eD208",
-    "repayment_history_score": 28.5,
-    "high_risk_tx_count": 9,
-    "wallet_age_days": 42,
-    "balance_stability_score": 24.1,
-    "label": 1
+    "wallet_address": "0x7D69BD4E9429cEB8Fe21E78277372e93C0784092",
+    "label": 0,
+    "wallet_age_days": 269,
+    "transaction_count": 351,
+    "avg_transaction_value": 8.0996,
+    "repayment_ratio": 0.5843,
+    "liquidation_count": 1,
+    "borrow_count": 5,
+    "high_risk_tx_count": 1,
+    "protocol_count": 11,
+    "balance_stability": 85.88,
+    "failed_transactions": 1,
+    "large_tx_ratio": 0.2775,
+    "historical_default": 0
   }
 ]
 ```
 
 ---
 
-### 2.3 Score Wallet (Quantum ML Inference)
-Evaluates credit risk using the Quantum Support Vector Classifier (QSVC) on Aer statevector simulation.
+### `POST /score`
 
-- **Method**: `POST`
-- **Path**: `/score`
-- **Headers**: `Content-Type: application/json`
+Body: `{ "wallet_address": "0x…", "features": { … } }`. `features` is optional
+— if omitted, the address is looked up in the dataset (falling back to neutral
+defaults for unknown addresses). You may pass a subset of the 12 features; the
+rest are filled with defaults. Legacy names (`repayment_history_score`,
+`balance_stability_score`) are accepted and mapped.
 
-#### Option A: Submit Custom Features
+Only the 6 quantum features actually drive the score: `repayment_ratio`,
+`high_risk_tx_count`, `wallet_age_days`, `balance_stability`,
+`liquidation_count`, `historical_default`.
+
+Response (abridged):
+
 ```json
 {
-  "wallet_address": "0x71C8363e3799173F35733365055170993001569B",
-  "features": {
-    "repayment_history_score": 85.0,
-    "high_risk_tx_count": 1,
-    "wallet_age_days": 450,
-    "balance_stability_score": 80.0
-  }
-}
-```
-
-#### Option B: Look up Wallet Address from Toy Dataset
-```json
-{
-  "wallet_address": "0xABA6055C4bAA05fbc0f7Bc699019fEf12Fc61d33"
-}
-```
-
-- **Response** (`200 OK`):
-```json
-{
-  "wallet_address": "0x71C8363e3799173F35733365055170993001569B",
-  "risk_score": 48.2,
-  "decision": "approve",
-  "decision_hash": "0xe107584b2c85292bdbee61e8ccaf8ec1e0499dbb98840c0e42c04c1892940ce8",
-  "features": {
-    "repayment_history_score": 85.0,
-    "high_risk_tx_count": 1,
-    "wallet_age_days": 450,
-    "balance_stability_score": 80.0
+  "wallet_address": "0x1111111111111111111111111111111111111111",
+  "risk_score": 9.9,
+  "decision": "APPROVED",
+  "decision_hash": "0x03cf2dba744393c0fb47d84472b5f10aee743b5ca00a1ef47306fbf5edab6156",
+  "features": { "wallet_age_days": 280, "repayment_ratio": 0.65, "…": 0 },
+  "model_version": { "model_id": "QSVC-ZZFeatureMap", "n_qubits": 6, "…": "…" },
+  "audit": {
+    "faithfulness": { "score": 0.0, "verdict": "LOW" },
+    "stability": { "score": 0.81, "verdict": "HIGH" },
+    "sensitivity": { "score": 1.0, "verdict": "HIGH" },
+    "overall_verdict": "SUPPORTED WITH CAUTION",
+    "overall_description": "…",
+    "summary_lines": ["…"]
   },
-  "quantum_model": "QSVC",
-  "timestamp": 1790408500
+  "classical_baseline": { "XGBoost": { "accuracy": 0.9975 }, "…": {} },
+  "canonical_record": { "…": "the exact hashed JSON" },
+  "timestamp": 1790438355
 }
 ```
 
-> **Decision Rule**: `risk_score < 50.0` => `"approve"` | `risk_score >= 50.0` => `"deny"`.
+- **Decision rule:** `risk_score >= 50` → `DENIED`, otherwise `APPROVED`.
+- `decision_hash` = Keccak256 of `canonical_record`.
 
 ---
 
-### 2.4 Explain Wallet Decision (XAI Attributions)
-Returns the SHAP KernelExplainer feature contribution breakdown. 
-Positive contributions increase risk; negative contributions reduce risk.
+### `GET /explain/{wallet_id}`
 
-- **Method**: `GET`
-- **Path**: `/explain/{wallet_id}`
-- **Response** (`200 OK`):
+Scores the wallet if needed, then returns SHAP attributions plus the audit.
+
 ```json
 {
-  "wallet_address": "0x71C8363e3799173F35733365055170993001569B",
-  "risk_score": 48.2,
-  "decision": "approve",
-  "base_risk_value": 65.0,
+  "wallet_address": "0x7D69…4092",
+  "risk_score": 46.0,
+  "decision": "APPROVED",
+  "base_risk_value": 49.8,
   "feature_contributions": {
-    "repayment_history": -8.5,
-    "high_risk_tx": -5.2,
-    "wallet_age": -4.1,
-    "balance_stability": +1.0
+    "repayment_ratio": -1.0,
+    "high_risk_tx": -4.6,
+    "liquidations": 2.6,
+    "historical_default": 2.2,
+    "tx_count": 0.0
   },
-  "input_features": {
-    "repayment_history": 85.0,
-    "high_risk_tx": 1.0,
-    "wallet_age": 450.0,
-    "balance_stability": 80.0
-  },
-  "cached": true
+  "input_features": { "wallet_age": 269.0, "tx_count": 351.0 },
+  "audit": { "…": "XAIAuditReport" },
+  "llm_explanation": null,
+  "cached": false
 }
 ```
 
-#### Frontend Visualization Guide:
-- Render a waterfall or horizontal bar chart showing each feature contribution.
-- Green bars for risk-reducing factors (negative points, e.g. `repayment_history: -8.5`).
-- Red bars for risk-increasing factors (positive points, e.g. `high_risk_tx: +18.0`).
-- Formula: `base_risk_value + sum(feature_contributions) == risk_score`.
+Contribution keys use human-friendly display names (see `DISPLAY_FEATURE_MAP`).
+Positive contributions raise risk; negative contributions lower it.
 
 ---
 
-### 2.5 Anchor Decision Proof On-Chain
-Computes `keccak256(wallet_address + risk_score + canonical_explanation)` and calls `recordDecision(bytes32 decisionHash)` on the smart contract.
+### `GET /audit/{wallet_id}`
 
-- **Method**: `POST`
-- **Path**: `/verify/{wallet_id}`
-- **Response** (`200 OK`):
+Returns the standalone `XAIAuditReport`:
+
 ```json
 {
-  "wallet_address": "0x71C8363e3799173F35733365055170993001569B",
-  "decision_hash": "0xe107584b2c85292bdbee61e8ccaf8ec1e0499dbb98840c0e42c04c1892940ce8",
-  "tx_hash": "0xe3c7049142a6c65a51b85dc4932d99b469d3acef7529b26a7b45db1de29542c7",
-  "block_number": 6540002,
-  "network": "Sepolia Testnet",
+  "faithfulness": { "score": 0.0, "verdict": "LOW",  "display_level": "⚠ Low" },
+  "stability":    { "score": 0.81, "verdict": "HIGH", "display_level": "✓ High" },
+  "sensitivity":  { "score": 1.0,  "verdict": "HIGH", "display_level": "✓ High" },
+  "overall_verdict": "SUPPORTED WITH CAUTION",
+  "overall_description": "…",
+  "summary_lines": [
+    "Faithfulness   ⚠ Low         (0/3 features verified)",
+    "Stability      ✓ High        (ρ = 0.812 across 5 clones)",
+    "Sensitivity    ✓ High        (4/4 features directionally correct)",
+    "Overall: SUPPORTED WITH CAUTION"
+  ]
+}
+```
+
+Verdicts: `SUPPORTED` · `SUPPORTED WITH CAUTION` · `QUESTIONABLE`.
+
+---
+
+### `POST /verify/{wallet_id}`
+
+Anchors `decision_hash` on-chain (simulated by default).
+
+```json
+{
+  "wallet_address": "0x7D69…4092",
+  "decision_hash": "0x…",
+  "tx_hash": "0x2548b72392…",
+  "block_number": 6540006,
+  "network": "Sepolia Testnet (Simulated Provider)",
   "status": "confirmed",
-  "explorer_url": "https://sepolia.etherscan.io/tx/0xe3c7049142a6c65a51b85dc4932d99b469d3acef7529b26a7b45db1de29542c7",
-  "timestamp": 1790408512
+  "explorer_url": "https://sepolia.etherscan.io/tx/0x2548b72392…",
+  "timestamp": 1790438410
 }
 ```
 
----
+### `GET /verify/{wallet_id}`
 
-### 2.6 Verify Decision Proof On-Chain
-Queries the smart contract `getDecision(address)` and checks if the on-chain hash matches the computed decision hash.
-
-- **Method**: `GET`
-- **Path**: `/verify/{wallet_id}`
-- **Response** (`200 OK`):
 ```json
 {
-  "wallet_address": "0x71C8363e3799173F35733365055170993001569B",
+  "wallet_address": "0x7D69…4092",
   "verified": true,
-  "on_chain_hash": "0xe107584b2c85292bdbee61e8ccaf8ec1e0499dbb98840c0e42c04c1892940ce8",
-  "expected_hash": "0xe107584b2c85292bdbee61e8ccaf8ec1e0499dbb98840c0e42c04c1892940ce8",
-  "tx_hash": "0xe3c7049142a6c65a51b85dc4932d99b469d3acef7529b26a7b45db1de29542c7",
-  "network": "Sepolia Testnet",
-  "explorer_url": "https://sepolia.etherscan.io/tx/0xe3c7049142a6c65a51b85dc4932d99b469d3acef7529b26a7b45db1de29542c7",
-  "timestamp": 1790408512,
+  "on_chain_hash": "0x2d5f…e13f1",
+  "expected_hash": "0x2d5f…e13f1",
+  "tx_hash": "0x2548b72392…",
+  "network": "Sepolia Testnet (Simulated Provider)",
+  "explorer_url": "https://sepolia.etherscan.io/tx/0x2548b72392…",
+  "timestamp": 1790438410,
+  "canonical_record": { "…": "…" },
   "message": null
 }
 ```
 
----
-
-## 3. TypeScript Interfaces for Frontend
-
-```typescript
-export interface WalletFeatures {
-  repayment_history_score: number; // 0 to 100
-  high_risk_tx_count: number;      // >= 0
-  wallet_age_days: number;         // >= 0
-  balance_stability_score: number; // 0 to 100
-}
-
-export interface ScoreResponse {
-  wallet_address: string;
-  risk_score: number;             // 0.0 to 100.0
-  decision: "approve" | "deny";
-  decision_hash: string;          // 0x... 32-byte hex
-  features: WalletFeatures;
-  quantum_model: string;
-  timestamp: number;
-}
-
-export interface ExplainResponse {
-  wallet_address: string;
-  risk_score: number;
-  decision: "approve" | "deny";
-  base_risk_value: number;
-  feature_contributions: {
-    repayment_history: number;
-    high_risk_tx: number;
-    wallet_age: number;
-    balance_stability: number;
-  };
-  input_features: Record<string, number>;
-  cached: boolean;
-}
-
-export interface VerifyWriteResponse {
-  wallet_address: string;
-  decision_hash: string;
-  tx_hash: string;
-  block_number: number;
-  network: string;
-  status: "confirmed" | "failed";
-  explorer_url: string;
-  timestamp: number;
-}
-
-export interface VerifyReadResponse {
-  wallet_address: string;
-  verified: boolean;
-  on_chain_hash: string | null;
-  expected_hash: string | null;
-  tx_hash?: string;
-  network: string;
-  explorer_url?: string;
-  timestamp?: number;
-}
-```
+`verified: true` means the on-chain hash matches the freshly computed canonical
+record.
 
 ---
 
-## 4. Frontend Example Calls (JavaScript)
+## Notes
 
-```javascript
-const API_BASE = "http://localhost:8000";
-
-// 1. Score a wallet
-async function scoreWallet(walletAddress, features = null) {
-  const body = { wallet_address: walletAddress };
-  if (features) body.features = features;
-
-  const res = await fetch(`${API_BASE}/score`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-  return await res.json();
-}
-
-// 2. Fetch explanation
-async function getExplanation(walletAddress) {
-  const res = await fetch(`${API_BASE}/explain/${walletAddress}`);
-  return await res.json();
-}
-
-// 3. Anchor proof on-chain
-async function anchorOnChain(walletAddress) {
-  const res = await fetch(`${API_BASE}/verify/${walletAddress}`, {
-    method: "POST"
-  });
-  return await res.json();
-}
-
-// 4. Verify on-chain proof
-async function verifyProof(walletAddress) {
-  const res = await fetch(`${API_BASE}/verify/${walletAddress}`);
-  return await res.json();
-}
-```
+- `/explain/llm/{wallet_id}` returns a plain-English explanation only when
+  `GEMINI_API_KEY` is configured; otherwise `llm_explanation` explains that the
+  LLM layer is disabled.
+- CORS is open (`allow_origins=["*"]`) so a local frontend can call the API
+  directly.
+- Error responses from the API use FastAPI's standard `{"detail": "…"}` shape
+  with a non-200 status code.

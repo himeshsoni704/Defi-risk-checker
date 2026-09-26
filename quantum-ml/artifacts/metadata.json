@@ -5,7 +5,7 @@
   "feature_schema_version": "2.0",
   "model_type": "QSVC",
   "feature_map": "ZZFeatureMap (reps=1, entanglement=linear, 6 qubits)",
-  "kernel": "FidelityQuantumKernel (Aer Statevector)",
+  "kernel": "FidelityStatevectorKernel (Statevector simulation)",
   "all_feature_names": [
     "wallet_age_days",
     "transaction_count",
@@ -34,5 +34,5 @@
   "test_auc": 0.8599999999999999,
   "test_f1": 0.7,
   "risk_threshold": 50.0,
-  "trained_at": 1790433845
+  "trained_at": 1790438340
 }

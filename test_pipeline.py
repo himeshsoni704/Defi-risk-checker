@@ -34,7 +34,7 @@ def run_all_tests():
     assert res.status_code == 200, f"Health check failed: {res.text}"
     health = res.json()
     print("  -> Status:", health["status"])
-    print("  -> Quantum Model:", health["quantum_model"]["type"])
+    print("  -> Quantum Model:", health["quantum_model"]["model_id"])
     print("  -> Web3 Network:", health["web3"]["network"])
 
     # 2. Test Sample Wallets

@@ -23,6 +23,11 @@ from qml_model import QuantumRiskModel, QML_FEATURES
 
 CACHE_PATH = os.path.join(os.path.dirname(current_dir), "data", "cached_explanations.json")
 
+# Bump this whenever the feature schema or explanation shape changes so that
+# stale cached entries from an older version are never served.
+CACHE_SCHEMA_VERSION = "2.0"
+_CACHE_PREFIX = f"v{CACHE_SCHEMA_VERSION}:"
+
 
 class QuantumXAIExplainer:
     """
@@ -95,7 +100,7 @@ class QuantumXAIExplainer:
         """
         feat_list = [float(x) for x in features]
         feat_hash = self._compute_feature_hash(feat_list)
-        cache_key = wallet_address.lower() if wallet_address else f"hash_{feat_hash}"
+        cache_key = _CACHE_PREFIX + (wallet_address.lower() if wallet_address else f"hash_{feat_hash}")
 
         if not force_recompute:
             # In-memory cache hit
@@ -159,7 +164,7 @@ class QuantumXAIExplainer:
         # Cache
         self.cache[cache_key] = result
         if wallet_address:
-            self.cache[f"hash_{feat_hash}"] = result
+            self.cache[_CACHE_PREFIX + f"hash_{feat_hash}"] = result
         self._save_cache()
 
         result["cached"] = False

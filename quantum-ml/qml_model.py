@@ -20,7 +20,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
 from qiskit.circuit.library import ZZFeatureMap
-from qiskit_machine_learning.kernels import FidelityQuantumKernel
+from qiskit_machine_learning.kernels import FidelityStatevectorKernel
 from qiskit_machine_learning.algorithms import QSVC
 
 from dataset import FEATURE_NAMES, DISPLAY_FEATURE_MAP  # noqa: F401 (re-export)
@@ -184,9 +184,12 @@ def train_and_save_qml_model(
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
 
-    print(f"Configuring {N_QUBITS}-qubit ZZFeatureMap and FidelityQuantumKernel...")
+    print(f"Configuring {N_QUBITS}-qubit ZZFeatureMap and FidelityStatevectorKernel...")
     feature_map = ZZFeatureMap(feature_dimension=N_QUBITS, reps=1, entanglement="linear")
-    kernel = FidelityQuantumKernel(feature_map=feature_map)
+    # FidelityStatevectorKernel simulates the statevector directly (with caching)
+    # instead of rebuilding/transpiling a circuit on every call. It computes the
+    # same fidelity kernel but is orders of magnitude faster on small qubit counts.
+    kernel = FidelityStatevectorKernel(feature_map=feature_map)
 
     print(f"Training QSVC on {len(X_train)} samples (this may take a few minutes)...")
     qsvc = QSVC(quantum_kernel=kernel, probability=True)
@@ -209,7 +212,7 @@ def train_and_save_qml_model(
         "feature_schema_version": FEATURE_SCHEMA_VERSION,
         "model_type": "QSVC",
         "feature_map": f"ZZFeatureMap (reps=1, entanglement=linear, {N_QUBITS} qubits)",
-        "kernel": "FidelityQuantumKernel (Aer Statevector)",
+        "kernel": "FidelityStatevectorKernel (Statevector simulation)",
         "all_feature_names": FEATURE_NAMES,
         "qml_feature_names": QML_FEATURES,
         "n_qubits": N_QUBITS,

@@ -10,8 +10,8 @@
 
 The backend is a working MVP, but a few things are deliberately left for later work:
 
-- **Scoring is slow.** `/score` runs the full quantum → SHAP → audit pipeline on a CPU quantum *simulator* and can take **several minutes** per wallet. Treat it as a correctness demo of the pipeline, not a production scoring service. Speeding this up is the top priority before building a UI/demo on top.
-- **Models must be trained first.** The repo ships without a matching trained model. Run the setup steps below to regenerate the dataset and train the models.
+- **Scoring is fast.** `/score` runs the full quantum → SHAP → audit pipeline in roughly **1–2 seconds** per wallet on CPU. It uses Qiskit's `FidelityStatevectorKernel`, which computes the same fidelity kernel as a circuit-based kernel but avoids re-transpiling on every call.
+- **Model artifacts are included, but retrainable.** Trained model + dataset artifacts are committed. If you change the schema or want fresh training, run the setup steps below.
 - **LLM explanations are optional.** The plain-English Gemini explanation stays disabled unless `GEMINI_API_KEY` is set.
 - **Blockchain is simulated by default.** Without `SEPOLIA_RPC_URL` / `PRIVATE_KEY` / `CONTRACT_ADDRESS`, proofs are written to a local simulated ledger (`data/local_ledger.json`).
 - **Windows notes.** `requirements.txt` now installs cleanly on Windows (uvloop is skipped there). If your console ever raises `UnicodeEncodeError`, run `set PYTHONUTF8=1` first.
@@ -217,6 +217,16 @@ uvicorn api.main:app --reload --port 8000
 ```
 
 Copy `.env.example` → `.env` and fill in `SEPOLIA_RPC_URL` / `PRIVATE_KEY` / `CONTRACT_ADDRESS` for live Sepolia mode. Without those, the system runs in a fully simulated local provider.
+
+**Frontend (Next.js):**
+
+```bash
+cd frontend
+npm install
+npm run dev        # http://localhost:3000 (backend must be on :8000)
+```
+
+See `frontend/README.md` for the page map and configuration.
 
 ---
 
