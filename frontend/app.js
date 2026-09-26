@@ -3,7 +3,8 @@
 /* ─── Config ─────────────────────────────────────────────────── */
 const API        = 'http://localhost:8000';
 const GEMINI_BASE   = 'https://generativelanguage.googleapis.com/v1beta/models';
-const GEMINI_MODELS = ['gemini-3.8-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash'];
+// gemini-2.0-flash-lite and gemini-1.5-flash were retired (404); 3.5-flash-lite is the current lite fallback.
+const GEMINI_MODELS = ['gemini-3.8-flash', 'gemini-3.5-flash-lite'];
 
 /* ─── Hardcoded fallback analyses ───────────────────────────── */
 const FALLBACK_ANALYSES = {
