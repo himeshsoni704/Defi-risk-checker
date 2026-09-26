@@ -279,18 +279,19 @@ function TourOverlay({
           )}
           {missing && (
             <div className="tour-wait">
-              <Icon name="info" className="nav-icon" />
+              <Icon name="info" />
               This panel is not on screen right now. It appears once a wallet has been analyzed and the API is reachable.
             </div>
           )}
         </div>
         <div className="tour-progress" aria-hidden>
-          {Array.from({ length: total }).map((_, i) => (
-            <span key={i} data-on={i <= index ? "true" : "false"} />
-          ))}
+          <span style={{ width: `${((index + 1) / total) * 100}%` }} />
         </div>
         <div className="tour-actions">
-          <span className="tour-kbd">← → to move · Esc to exit</span>
+          <span className="tour-kbd">
+            <span className="kbd">←</span>
+            <span className="kbd">→</span> move · <span className="kbd">esc</span> exit
+          </span>
           <div className="row">
             {index > 0 && (
               <button className="btn btn-sm" onClick={onBack}>

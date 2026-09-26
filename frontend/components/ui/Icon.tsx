@@ -1,6 +1,42 @@
 // Stroke icons drawn on a 24px grid. Kept inline so the app has no icon dependency.
 
 const PATHS: Record<string, React.ReactNode> = {
+  search: (
+    <>
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="M20 20l-4.2-4.2" />
+    </>
+  ),
+  arrowUp: (
+    <>
+      <path d="M12 19V5" />
+      <path d="M6 11l6-6 6 6" />
+    </>
+  ),
+  arrowDown: (
+    <>
+      <path d="M12 5v14" />
+      <path d="M6 13l6 6 6-6" />
+    </>
+  ),
+  cpu: (
+    <>
+      <rect x="6.5" y="6.5" width="11" height="11" rx="1.5" />
+      <path d="M9.5 3v3.5M14.5 3v3.5M9.5 17.5V21M14.5 17.5V21M3 9.5h3.5M3 14.5h3.5M17.5 9.5H21M17.5 14.5H21" />
+    </>
+  ),
+  hash: (
+    <>
+      <path d="M5 9h15M4 15h15M10 4 8 20M16 4l-2 16" />
+    </>
+  ),
+  database: (
+    <>
+      <ellipse cx="12" cy="6" rx="7.5" ry="2.5" />
+      <path d="M4.5 6v12c0 1.4 3.4 2.5 7.5 2.5s7.5-1.1 7.5-2.5V6" />
+      <path d="M4.5 12c0 1.4 3.4 2.5 7.5 2.5s7.5-1.1 7.5-2.5" />
+    </>
+  ),
   dashboard: (
     <>
       <rect x="3.5" y="3.5" width="7" height="9" rx="1" />

@@ -9,6 +9,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { api, errorMessage } from "./api";
 import { invalidateQueries } from "./query";
 import { readStorage, writeStorage, removeStorage } from "./storage";
+import { useToast } from "@/components/ui/Toast";
+import { shortAddress } from "./format";
 import type { AnchorResponse, ScoreResponse, WalletFeatures } from "./types";
 
 export interface WalletRecord {
@@ -56,6 +58,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   const [running, setRunning] = useState<AnalysisRun | null>(null);
   const [lastError, setLastError] = useState<{ wallet: string; message: string } | null>(null);
   const runningRef = useRef<Promise<ScoreResponse | null> | null>(null);
+  const toast = useToast();
 
   useEffect(() => {
     setRecords(readStorage<Record<string, WalletRecord>>(RECORDS_KEY, {}));
@@ -109,9 +112,15 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
               },
             }),
           );
+          toast({
+            tone: score.decision.toUpperCase().startsWith("DEN") ? "bad" : "good",
+            title: `${score.risk_score.toFixed(1)} · ${score.decision}`,
+            body: `${shortAddress(address)} scored in ${((Date.now() - startedAt) / 1000).toFixed(1)} s`,
+          });
           return score;
         } catch (err) {
           setLastError({ wallet: address, message: errorMessage(err) });
+          toast({ tone: "bad", title: "Analysis failed", body: errorMessage(err) });
           return null;
         } finally {
           setRunning(null);
@@ -121,7 +130,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       runningRef.current = job;
       return job;
     },
-    [persist, setActiveWallet],
+    [persist, setActiveWallet, toast],
   );
 
   const saveAnchor = useCallback(

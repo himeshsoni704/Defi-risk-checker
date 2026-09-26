@@ -29,7 +29,7 @@ export function flowStatus(record: WalletRecord | undefined): Record<"assess" | 
       meta: `base ${fmtNumber(s.canonical_record?.explanation?.base_value)} → ${fmtNumber(s.risk_score)}`,
     },
     audit: {
-      state: tone === "pos" ? "done" : tone === "warn" ? "warn" : tone === "neg" ? "bad" : "idle",
+      state: tone === "good" ? "done" : tone === "warn" ? "warn" : tone === "bad" ? "bad" : "idle",
       meta: s.audit.overall_verdict.toLowerCase(),
     },
     verify: anchored ? { state: "done", meta: `block ${record.anchor!.block_number}` } : { state: "idle", meta: "Not anchored" },

@@ -1,170 +1,319 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import WalletPicker from "@/components/wallet/WalletPicker";
-import { Chip, EmptyState, ErrorState, Panel, Skeleton, SkeletonBlock, WalletGlyph } from "@/components/ui/primitives";
+import DatasetField, { type FieldMark } from "@/components/charts/DatasetField";
+import { MiniDial } from "@/components/charts/RiskDial";
+import { Card, EmptyState, ErrorState, Skeleton, SkeletonBlock, Tag, WalletGlyph } from "@/components/ui/primitives";
 import Icon from "@/components/ui/Icon";
 import { useAnalysis, walletKey } from "@/lib/analysis-store";
 import { useHealth, useSampleWallets } from "@/lib/queries";
 import { useTour } from "@/components/tour/TourProvider";
 import { QUANTUM_FEATURES, RISK_THRESHOLD, formatFeatureValue, FEATURE_BY_KEY } from "@/lib/features";
-import { fmtDateTime, fmtNumber, fmtPercent, fmtRelative, shortAddress } from "@/lib/format";
-import { decisionTone, overallTone, titleCase } from "@/lib/verdicts";
+import { fmtNumber, fmtPercent, fmtRelative, shortAddress } from "@/lib/format";
+import { decisionTone, overallTone, sentenceCase } from "@/lib/verdicts";
 import { withWallet } from "@/components/shell/nav";
 
 export default function DashboardPage() {
   const router = useRouter();
   const tour = useTour();
-  const { running } = useAnalysis();
+  const { running, getRecord, history } = useAnalysis();
+  const field = useSampleWallets(200);
 
-  const open = (wallet: string, hasRecord: boolean) =>
-    router.push(`/assess?wallet=${encodeURIComponent(wallet)}${hasRecord ? "" : "&run=1"}`);
+  const open = (wallet: string) => router.push(`/assess?wallet=${encodeURIComponent(wallet)}${getRecord(wallet) ? "" : "&run=1"}`);
+
+  const marks = useMemo(() => {
+    const m: Record<string, FieldMark> = {};
+    for (const r of history) m[walletKey(r.score.wallet_address)] = { score: r.score.risk_score, decision: r.score.decision };
+    return m;
+  }, [history]);
+
+  const safeN = field.data?.filter((w) => w.label === 0).length ?? 0;
+  const riskyN = field.data?.filter((w) => w.label === 1).length ?? 0;
 
   return (
     <main className="page">
-      <div className="page-head">
-        <div className="page-head-text">
-          <span className="eyebrow">Overview</span>
-          <h1 className="page-title">DeFi wallet risk, with the reasoning attached</h1>
-          <p className="page-lede">
-            Score a wallet with the quantum classifier, see which features drove the score, test whether that explanation holds up, and anchor the whole
-            decision on-chain.
-          </p>
+      <section className="hero rise">
+        <div className="hero-grid">
+          <div className="hero-copy" data-tour="quick-analysis">
+            <span className="kicker">
+              <span className="dot dot-good" /> Quantum ML · SHAP · explanation audit · on-chain proof
+            </span>
+            <h1 className="hero-title">
+              Score the wallet.
+              <br />
+              <em>See why.</em> Prove it.
+            </h1>
+            <p className="page-lede" style={{ maxWidth: "52ch" }}>
+              A 6-qubit classifier scores DeFi wallets from 0 to 100. Every score comes with its SHAP explanation, an independent test of that explanation, and a
+              Keccak256 hash you can anchor on-chain.
+            </p>
+            <WalletPicker busy={Boolean(running)} onSubmit={open} large />
+            <div className="row" style={{ gap: 10 }}>
+              <button className="btn btn-ghost btn-sm" onClick={tour.start}>
+                <Icon name="compass" /> Take the guided tour
+              </button>
+              <span className="faint small">
+                or press <span className="kbd">⌘K</span> anywhere
+              </span>
+            </div>
+          </div>
+
+          <div className="field-card" data-tour="dataset-field">
+            <div className="field-head">
+              <div>
+                <div className="card-title">The dataset, wallet by wallet</div>
+                <div className="card-sub">Wallet age × repayment ratio · hover a point, click to analyze it</div>
+              </div>
+              <div className="legend">
+                <span className="legend-item">
+                  <span className="swatch" style={{ background: "var(--down)", borderRadius: "50%" }} /> safe {safeN > 0 && <span className="faint">{safeN}</span>}
+                </span>
+                <span className="legend-item">
+                  <span className="swatch" style={{ background: "var(--up)", borderRadius: "50%" }} /> risky {riskyN > 0 && <span className="faint">{riskyN}</span>}
+                </span>
+                <span className="legend-item">
+                  <span className="swatch" style={{ border: "1.8px solid var(--iris)", borderRadius: "50%", background: "transparent" }} /> analyzed
+                </span>
+              </div>
+            </div>
+            {field.error && !field.data ? (
+              <div style={{ minHeight: 300, display: "grid", alignItems: "center" }}>
+                <ErrorState error={field.error} onRetry={() => field.refetch()} what="dataset wallets" />
+              </div>
+            ) : !field.data ? (
+              <Skeleton h={300} />
+            ) : (
+              <DatasetField wallets={field.data} marks={marks} onPick={open} />
+            )}
+            <div className="faint small">
+              Dataset labels are ground truth from GET /wallets?limit=200. The model has not seen these colors; they are what it tries to predict.
+            </div>
+          </div>
         </div>
-        <button className="btn" onClick={tour.start}>
-          <Icon name="compass" /> Take the guided tour
-        </button>
-      </div>
+        <HealthTicker />
+      </section>
 
-      <div className="grid grid-main-side">
-        <Panel title="Analyze a wallet" sub="Runs POST /score: QSVC → SHAP → audit → decision hash" tour="quick-analysis">
-          <QuickAnalysis onOpen={open} busy={Boolean(running)} />
-        </Panel>
-        <SystemStatus />
-      </div>
-
-      <PipelineStrip />
-
-      <SampleWallets onOpen={open} />
-
-      <div className="grid grid-main-side">
+      <div className="grid g-main">
         <RecentAnalyses />
         <RiskDrivers />
       </div>
+
+      <Pipeline />
+
+      <SampleWallets onOpen={open} />
     </main>
   );
 }
 
-function QuickAnalysis({ onOpen, busy }: { onOpen: (w: string, hasRecord: boolean) => void; busy: boolean }) {
-  const { getRecord } = useAnalysis();
-  return <WalletPicker busy={busy} onSubmit={(w) => onOpen(w, Boolean(getRecord(w)))} />;
-}
-
-function SystemStatus() {
+function HealthTicker() {
   const health = useHealth();
   const h = health.data;
+  if (health.error && !h) {
+    return (
+      <div className="ticker" data-tour="system-status">
+        <div className="ticker-item">
+          <span className="dot dot-bad" /> API unreachable
+        </div>
+        <div className="ticker-item" style={{ borderRight: 0 }}>
+          <button className="btn btn-sm" onClick={() => health.refetch()}>
+            <Icon name="refresh" /> Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+  const items: [React.ReactNode, React.ReactNode][] = h
+    ? [
+        [<span key="d" className="dot dot-good dot-live" />, <>API healthy · {h.latencyMs} ms</>],
+        ["Model", `${h.quantum_model.model_id} v${h.quantum_model.model_version}`],
+        ["Qubits", h.quantum_model.n_qubits],
+        ["Test AUC", fmtNumber(h.quantum_model.test_auc, 2)],
+        ["Proofs", h.web3.is_live_sepolia ? "Sepolia · live" : "Sepolia · simulated"],
+        ["Dataset", `${h.dataset_rows.toLocaleString("en-US")} wallets`],
+        ["Server cache", `${h.cached_decisions} decisions`],
+      ]
+    : [];
   return (
-    <Panel
-      title={
-        <>
-          <span className={`dot ${h && !health.error ? "dot-pos" : health.error ? "dot-neg" : "dot-warn dot-pulse"}`} />
-          System status
-        </>
-      }
-      sub={health.updatedAt ? `GET /health · checked ${fmtRelative(health.updatedAt)}` : "GET /health"}
-      actions={
-        <button className="btn btn-ghost btn-sm btn-icon" onClick={() => health.refetch()} aria-label="Refresh status" disabled={health.fetching}>
-          {health.fetching ? <span className="spinner" /> : <Icon name="refresh" />}
-        </button>
-      }
-      tour="system-status"
-    >
-      {health.error && !h ? (
-        <ErrorState error={health.error} onRetry={() => health.refetch()} what="the system status" />
-      ) : !h ? (
-        <SkeletonBlock lines={7} />
-      ) : (
-        <dl className="kv">
-          <dt>API</dt>
-          <dd>
-            <span className="row" style={{ gap: 8 }}>
-              <Chip tone={h.status === "healthy" ? "pos" : "warn"}>{h.status}</Chip>
-              <span className="mono num faint">{h.latencyMs} ms</span>
-            </span>
-          </dd>
-          <dt>Model</dt>
-          <dd className="mono">
-            {h.quantum_model.model_id} v{h.quantum_model.model_version}
-          </dd>
-          <dt>Circuit</dt>
-          <dd>{h.quantum_model.feature_map ?? `${h.quantum_model.n_qubits} qubits`}</dd>
-          <dt>Test metrics</dt>
-          <dd className="mono num">
-            acc {fmtNumber(h.quantum_model.test_accuracy, 2)} · auc {fmtNumber(h.quantum_model.test_auc, 2)} · f1 {fmtNumber(h.quantum_model.test_f1, 2)}
-          </dd>
-          <dt>Trained</dt>
-          <dd>{fmtDateTime(h.quantum_model.trained_at)}</dd>
-          <dt>Proof network</dt>
-          <dd>
-            <span className="row" style={{ gap: 8 }}>
-              {h.web3.network}
-              <Chip tone={h.web3.is_live_sepolia ? "pos" : "warn"}>{h.web3.is_live_sepolia ? "live" : "simulated"}</Chip>
-            </span>
-          </dd>
-          <dt>Dataset</dt>
-          <dd className="mono num">{h.dataset_rows.toLocaleString("en-US")} wallets</dd>
-          <dt>Server cache</dt>
-          <dd className="mono num">
-            {h.cached_decisions} decisions · {h.cached_explanations} explanations
-          </dd>
-        </dl>
-      )}
-    </Panel>
+    <div className="ticker" data-tour="system-status" aria-label="System status from GET /health">
+      {!h
+        ? Array.from({ length: 5 }).map((_, i) => (
+            <div className="ticker-item" key={i}>
+              <Skeleton w={110} h={12} />
+            </div>
+          ))
+        : items.map(([k, v], i) => (
+            <div className="ticker-item" key={i}>
+              {k}
+              <strong>{v}</strong>
+            </div>
+          ))}
+    </div>
   );
 }
 
-function PipelineStrip() {
-  const steps = [
-    { k: "Input", name: "12 wallet features", desc: "From the dataset or a scenario you define." },
-    { k: "Model", name: "QSVC risk score", desc: "6 features encoded on 6 qubits. Denied at ≥ 50." },
-    { k: "Explain", name: "SHAP attribution", desc: "Risk points each feature adds or removes." },
-    { k: "Audit", name: "Explanation audit", desc: "Faithfulness, stability and sensitivity tests." },
-    { k: "Proof", name: "Keccak256 on-chain", desc: "Hash of the full decision record, anchored and verifiable." },
-  ];
+function RecentAnalyses() {
+  const { history, clearHistory, hydrated } = useAnalysis();
+  const [confirming, setConfirming] = useState(false);
   return (
-    <section className="panel" aria-label="How a decision is produced">
-      <div className="panel-body" style={{ paddingBlock: 6 }}>
-        <div className="pipeline">
-          {steps.map((s) => (
-            <div className="pipe-step" key={s.k}>
-              <span className="pipe-k">{s.k}</span>
-              <span className="pipe-name">{s.name}</span>
-              <span className="pipe-desc">{s.desc}</span>
+    <Card
+      title="Recent analyses"
+      sub="Scored from this browser, newest first"
+      flush
+      tour="recent-analyses"
+      i={2}
+      actions={
+        history.length > 0 ? (
+          confirming ? (
+            <span className="row">
+              <span className="faint small">Remove {history.length}?</span>
+              <button className="btn btn-sm btn-danger" onClick={() => (clearHistory(), setConfirming(false))}>
+                Clear
+              </button>
+              <button className="btn btn-sm btn-ghost" onClick={() => setConfirming(false)}>
+                Keep
+              </button>
+            </span>
+          ) : (
+            <button className="btn btn-ghost btn-sm" onClick={() => setConfirming(true)}>
+              <Icon name="trash" /> Clear
+            </button>
+          )
+        ) : undefined
+      }
+    >
+      {!hydrated ? (
+        <div style={{ padding: "0 22px 22px" }}>
+          <SkeletonBlock lines={3} />
+        </div>
+      ) : history.length === 0 ? (
+        <div style={{ padding: "0 22px 22px" }}>
+          <EmptyState title="Nothing scored yet">
+            Analyze a wallet above or click a point in the dataset. Each result lands here with its score, decision, audit verdict and proof status.
+          </EmptyState>
+        </div>
+      ) : (
+        <div>
+          {history.map((r, idx) => {
+            const w = r.score.wallet_address;
+            const anchored = r.anchor && r.anchor.decision_hash.toLowerCase() === r.score.decision_hash.toLowerCase();
+            return (
+              <div className="recent-row rise" key={walletKey(w)} style={{ "--i": idx } as React.CSSProperties}>
+                <MiniDial score={r.score.risk_score} />
+                <div style={{ minWidth: 0 }}>
+                  <Link href={withWallet("/assess", w)} className="row" style={{ gap: 8, flexWrap: "nowrap" }}>
+                    <WalletGlyph address={w} size={18} />
+                    <span className="mono" style={{ fontSize: 13.5 }}>
+                      {shortAddress(w, 8, 6)}
+                    </span>
+                    {r.customFeatures && <Tag tone="iris">scenario</Tag>}
+                  </Link>
+                  <div className="row" style={{ marginTop: 6, gap: 6 }}>
+                    <Tag tone={decisionTone(r.score.decision)} icon>
+                      {r.score.decision}
+                    </Tag>
+                    <Link href={withWallet("/audit", w)}>
+                      <Tag tone={overallTone(r.score.audit.overall_verdict)} icon>
+                        {sentenceCase(r.score.audit.overall_verdict)}
+                      </Tag>
+                    </Link>
+                    <Link href={withWallet("/verify", w)}>{anchored ? <Tag tone="good" icon>anchored</Tag> : <Tag>not anchored</Tag>}</Link>
+                    <span className="faint small">{fmtRelative(r.scoredAt)}</span>
+                  </div>
+                </div>
+                <Link href={withWallet("/explain", w)} className="btn btn-sm">
+                  Why? <Icon name="arrowRight" />
+                </Link>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function RiskDrivers() {
+  const health = useHealth();
+  const acc = health.data?.quantum_model.test_accuracy;
+  return (
+    <Card title="What the model reads" sub="Six features are encoded on six qubits" i={3}>
+      <div className="stack" style={{ gap: 16 }}>
+        <div style={{ display: "grid", gap: 2 }}>
+          {QUANTUM_FEATURES.map((f, i) => (
+            <div key={f.key} className="row between" style={{ padding: "9px 0", borderTop: i ? "1px solid var(--line)" : 0, rowGap: 2 }}>
+              <span className="row" style={{ gap: 10, flexWrap: "nowrap" }}>
+                <span className="mono faint" style={{ fontSize: 11 }}>
+                  q{i}
+                </span>
+                <span style={{ fontWeight: 500 }}>{f.label}</span>
+              </span>
+              <span className="faint small" style={{ textAlign: "right" }}>
+                {f.description.replace(/\.$/, "")}
+              </span>
             </div>
           ))}
         </div>
+        <div className="notice notice-iris" style={{ gridTemplateColumns: "18px 1fr" }}>
+          <Icon name="info" />
+          <div>
+            Score = P(default) × 100. <strong>{RISK_THRESHOLD} or more is denied.</strong>
+            {acc !== undefined && acc !== null && <> Held-out accuracy {fmtPercent(acc, 0)}. </>}
+            <Link href="/models" className="link">
+              Compare models
+            </Link>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function Pipeline() {
+  const steps = [
+    { icon: "database", name: "12 features", desc: "From the dataset or a scenario you define." },
+    { icon: "cpu", name: "QSVC score", desc: "Six features on six qubits. Denied at ≥ 50." },
+    { icon: "bars", name: "SHAP", desc: "Risk points each feature adds or removes." },
+    { icon: "shield", name: "Audit", desc: "Faithfulness, stability and sensitivity tests." },
+    { icon: "chain", name: "Proof", desc: "Keccak256 of the full record, anchored on-chain." },
+  ];
+  return (
+    <section className="stack" style={{ gap: 14 }}>
+      <div className="section-head">
+        <h2>One request, five stages</h2>
+        <p>What POST /score does for every wallet</p>
+      </div>
+      <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 12 }}>
+        {steps.map((s, i) => (
+          <div key={s.name} className="card rise" style={{ "--i": i + 3, padding: 18, display: "grid", gap: 10 } as React.CSSProperties}>
+            <div className="row between">
+              <span className="driver-rank" style={{ color: "var(--iris-2)" }}>
+                <Icon name={s.icon} className="nav-icon" />
+              </span>
+              <span className="mono faint" style={{ fontSize: 11 }}>
+                0{i + 1}
+              </span>
+            </div>
+            <div style={{ fontWeight: 600, fontSize: 15 }}>{s.name}</div>
+            <div className="faint small">{s.desc}</div>
+          </div>
+        ))}
       </div>
     </section>
   );
 }
 
-function SampleWallets({ onOpen }: { onOpen: (w: string, hasRecord: boolean) => void }) {
+function SampleWallets({ onOpen }: { onOpen: (w: string) => void }) {
   const samples = useSampleWallets(12);
   const { getRecord, running } = useAnalysis();
   const cols = ["repayment_ratio", "liquidation_count", "high_risk_tx_count", "wallet_age_days", "balance_stability", "historical_default"] as const;
 
   return (
-    <Panel
-      title="Sample wallets"
-      sub="GET /wallets · rows from the synthetic dataset, alternating the two labels"
-      tight
-      tour="sample-wallets"
-      actions={samples.error ? <button className="btn btn-sm" onClick={() => samples.refetch()}>Retry</button> : undefined}
-    >
+    <Card title="Dataset wallets" sub="GET /wallets · six of each label, with the six features the model reads" flush tour="sample-wallets">
       {samples.error && !samples.data ? (
-        <div className="panel-body">
+        <div style={{ padding: "0 22px 22px" }}>
           <ErrorState error={samples.error} onRetry={() => samples.refetch()} what="sample wallets" />
         </div>
       ) : (
@@ -173,13 +322,13 @@ function SampleWallets({ onOpen }: { onOpen: (w: string, hasRecord: boolean) => 
             <thead>
               <tr>
                 <th>Wallet</th>
-                <th>Dataset label</th>
+                <th>Label</th>
                 {cols.map((c) => (
                   <th key={c} className="r">
                     {FEATURE_BY_KEY[c].label}
                   </th>
                 ))}
-                <th className="r">Model result</th>
+                <th className="r">Model</th>
                 <th />
               </tr>
             </thead>
@@ -188,30 +337,26 @@ function SampleWallets({ onOpen }: { onOpen: (w: string, hasRecord: boolean) => 
                 Array.from({ length: 6 }).map((_, i) => (
                   <tr key={i}>
                     <td colSpan={cols.length + 4}>
-                      <Skeleton h={16} />
+                      <Skeleton h={18} />
                     </td>
                   </tr>
                 ))}
-              {samples.data?.length === 0 && (
-                <tr>
-                  <td colSpan={cols.length + 4}>
-                    <span className="muted">The backend dataset is empty. Generate it with quantum-ml/dataset.py.</span>
-                  </td>
-                </tr>
-              )}
               {samples.data?.map((w) => {
                 const rec = getRecord(w.wallet_address);
                 const isRunning = running?.wallet.toLowerCase() === w.wallet_address.toLowerCase();
                 return (
-                  <tr key={w.wallet_address} className="clickable" onClick={() => onOpen(w.wallet_address, Boolean(rec))}>
+                  <tr key={w.wallet_address} className="clickable" onClick={() => onOpen(w.wallet_address)}>
                     <td>
                       <span className="row" style={{ gap: 10, flexWrap: "nowrap" }}>
-                        <WalletGlyph address={w.wallet_address} size={20} />
+                        <WalletGlyph address={w.wallet_address} size={22} />
                         <span className="mono">{shortAddress(w.wallet_address, 8, 6)}</span>
                       </span>
                     </td>
                     <td>
-                      <Chip tone={w.label === 1 ? "neg" : "pos"}>{w.label === 1 ? "risky" : "safe"}</Chip>
+                      <span className="row" style={{ gap: 7, flexWrap: "nowrap" }}>
+                        <span className="swatch" style={{ background: w.label === 1 ? "var(--up)" : "var(--down)", borderRadius: "50%" }} />
+                        {w.label === 1 ? "risky" : "safe"}
+                      </span>
                     </td>
                     {cols.map((c) => (
                       <td key={c} className="r">
@@ -224,12 +369,11 @@ function SampleWallets({ onOpen }: { onOpen: (w: string, hasRecord: boolean) => 
                           <span className="spinner" /> scoring
                         </span>
                       ) : rec ? (
-                        <span className="row" style={{ justifyContent: "flex-end", gap: 8, flexWrap: "nowrap" }}>
-                          <span className="mono num">{fmtNumber(rec.score.risk_score)}</span>
-                          <Chip tone={decisionTone(rec.score.decision)}>{rec.score.decision}</Chip>
-                        </span>
+                        <Tag tone={decisionTone(rec.score.decision)} icon>
+                          {fmtNumber(rec.score.risk_score)}
+                        </Tag>
                       ) : (
-                        <span className="faint">not scored</span>
+                        <span className="faint">—</span>
                       )}
                     </td>
                     <td className="r">
@@ -237,7 +381,7 @@ function SampleWallets({ onOpen }: { onOpen: (w: string, hasRecord: boolean) => 
                         className="btn btn-sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onOpen(w.wallet_address, Boolean(rec));
+                          onOpen(w.wallet_address);
                         }}
                         disabled={Boolean(running)}
                       >
@@ -251,142 +395,6 @@ function SampleWallets({ onOpen }: { onOpen: (w: string, hasRecord: boolean) => 
           </table>
         </div>
       )}
-    </Panel>
-  );
-}
-
-function RecentAnalyses() {
-  const { history, clearHistory, hydrated } = useAnalysis();
-  const [confirming, setConfirming] = useState(false);
-  return (
-    <Panel
-      title="Recent analyses"
-      sub="Scores produced from this browser, newest first"
-      tight
-      tour="recent-analyses"
-      actions={
-        history.length > 0 ? (
-          confirming ? (
-            <span className="row">
-              <span className="faint" style={{ fontSize: 12.5 }}>
-                Remove {history.length} from this browser?
-              </span>
-              <button className="btn btn-sm btn-danger" onClick={() => (clearHistory(), setConfirming(false))}>
-                Clear
-              </button>
-              <button className="btn btn-sm btn-ghost" onClick={() => setConfirming(false)}>
-                Cancel
-              </button>
-            </span>
-          ) : (
-            <button className="btn btn-ghost btn-sm" onClick={() => setConfirming(true)}>
-              <Icon name="trash" /> Clear
-            </button>
-          )
-        ) : undefined
-      }
-    >
-      {!hydrated ? (
-        <div className="panel-body">
-          <SkeletonBlock lines={3} />
-        </div>
-      ) : history.length === 0 ? (
-        <div className="panel-body">
-          <EmptyState title="No analyses yet">
-            Analyze a wallet above and it will be listed here with its score, decision, audit verdict and on-chain status. The list is stored in this
-            browser only.
-          </EmptyState>
-        </div>
-      ) : (
-        <div className="table-wrap">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Wallet</th>
-                <th className="r">Risk</th>
-                <th>Decision</th>
-                <th>Audit</th>
-                <th>Proof</th>
-                <th>When</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {history.map((r) => {
-                const w = r.score.wallet_address;
-                const anchored = r.anchor && r.anchor.decision_hash.toLowerCase() === r.score.decision_hash.toLowerCase();
-                return (
-                  <tr key={walletKey(w)}>
-                    <td>
-                      <Link href={withWallet("/assess", w)} className="row" style={{ gap: 10, flexWrap: "nowrap" }}>
-                        <WalletGlyph address={w} size={20} />
-                        <span className="mono">{shortAddress(w, 8, 6)}</span>
-                        {r.customFeatures && <Chip tone="accent">scenario</Chip>}
-                      </Link>
-                    </td>
-                    <td className="r">{fmtNumber(r.score.risk_score)}</td>
-                    <td>
-                      <Chip tone={decisionTone(r.score.decision)}>{r.score.decision}</Chip>
-                    </td>
-                    <td>
-                      <Link href={withWallet("/audit", w)}>
-                        <Chip tone={overallTone(r.score.audit.overall_verdict)}>{titleCase(r.score.audit.overall_verdict)}</Chip>
-                      </Link>
-                    </td>
-                    <td>
-                      <Link href={withWallet("/verify", w)}>
-                        {anchored ? <Chip tone="pos">anchored</Chip> : <Chip>not anchored</Chip>}
-                      </Link>
-                    </td>
-                    <td className="faint" style={{ whiteSpace: "nowrap" }}>
-                      {fmtRelative(r.scoredAt)}
-                    </td>
-                    <td className="r">
-                      <Link href={withWallet("/explain", w)} className="btn btn-ghost btn-sm">
-                        Why? <Icon name="arrowRight" />
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </Panel>
-  );
-}
-
-function RiskDrivers() {
-  const health = useHealth();
-  const acc = health.data?.quantum_model.test_accuracy;
-  return (
-    <Panel title="What the model looks at" sub="The six features encoded in the quantum circuit">
-      <div className="stack" style={{ gap: 14 }}>
-        <ul className="bullets">
-          {QUANTUM_FEATURES.map((f) => (
-            <li key={f.key}>
-              <strong style={{ color: "var(--text)", fontWeight: 600 }}>{f.label}</strong> — {f.description.replace(/\.$/, "")}
-            </li>
-          ))}
-        </ul>
-        <hr className="divider" />
-        <div className="prose" style={{ fontSize: 13 }}>
-          <p>
-            The risk score is the classifier&apos;s probability of default × 100. Wallets scoring <strong>{RISK_THRESHOLD} or higher are denied</strong>.
-            The other six recorded features are hashed into the decision but are not inputs to this model.
-          </p>
-          {acc !== undefined && acc !== null && (
-            <p>
-              On its held-out test set the QSVC is right {fmtPercent(acc, 0)} of the time.{" "}
-              <Link href="/models" className="link">
-                Compare with the classical baselines
-              </Link>
-              .
-            </p>
-          )}
-        </div>
-      </div>
-    </Panel>
+    </Card>
   );
 }

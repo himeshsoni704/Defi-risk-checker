@@ -2,19 +2,20 @@
 
 import { useRouter } from "next/navigation";
 import WalletPicker from "./WalletPicker";
-import { Panel } from "@/components/ui/primitives";
+import { Card } from "@/components/ui/primitives";
 
 /** Empty state for flow pages opened without a wallet. */
 export default function NoWallet({ page, description }: { page: string; description: string }) {
   const router = useRouter();
   return (
-    <Panel title={`No wallet selected`} sub={description}>
+    <Card title="Pick a wallet to continue" sub={description} glow i={1}>
       <div className="stack">
         <p className="muted" style={{ maxWidth: "62ch" }}>
-          The {page} page works on one wallet at a time. Choose a wallet below: it is scored on the Risk assessment page, and the step bar there brings you back here.
+          The {page} works on one wallet at a time. Choose one below: it is scored on the Risk assessment page, and the flow bar at the top brings you back
+          here.
         </p>
         <WalletPicker onSubmit={(w) => router.push(`/assess?wallet=${encodeURIComponent(w)}&run=1`)} />
       </div>
-    </Panel>
+    </Card>
   );
 }

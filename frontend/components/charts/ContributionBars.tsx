@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useWidth } from "./useWidth";
+import { Tooltip, TipValue, useTooltip } from "./ChartTooltip";
 import { featureLabel, featureMeta, formatFeatureValue } from "@/lib/features";
 import { fmtSigned } from "@/lib/format";
 
@@ -14,14 +16,17 @@ export interface ContributionItem {
  * Diverging bar chart of SHAP attributions in risk points. Bars right of zero
  * raise the risk score, bars left of zero lower it.
  */
-export default function ContributionBars({ items, highlight }: { items: ContributionItem[]; highlight?: string }) {
+export default function ContributionBars({ items }: { items: ContributionItem[] }) {
   const [ref, width] = useWidth<HTMLDivElement>();
+  const { tip, show, hide } = useTooltip();
+  const [active, setActive] = useState<number | null>(null);
   const rows = [...items].sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
   const compact = width < 520;
-  const labelW = compact ? 118 : 190;
+  const labelW = compact ? 118 : 200;
   const valueW = 52;
-  const rowH = compact ? 38 : 34;
-  const top = 22;
+  const rowH = compact ? 42 : 38;
+  const barH = 16;
+  const top = 24;
   const chartL = labelW + 8;
   const chartR = width - valueW;
   const mid = (chartL + chartR) / 2;
@@ -34,16 +39,16 @@ export default function ContributionBars({ items, highlight }: { items: Contribu
   for (let t = -domain; t <= domain + 1e-9; t += step) ticks.push(Number(t.toFixed(6)));
   const tickPx = (half * step) / domain;
   const tickEvery = tickPx >= 30 ? 1 : tickPx >= 15 ? 2 : 4;
-  const height = top + rows.length * rowH + 8;
+  const height = top + rows.length * rowH + 4;
 
   return (
-    <div ref={ref} style={{ width: "100%" }}>
+    <div ref={ref} className="chart-wrap" onPointerLeave={() => (hide(), setActive(null))}>
       <svg className="chart" width={width} height={height} role="img" aria-label="SHAP feature contributions in risk points">
         {ticks.map((t, i) =>
           (i - (ticks.length - 1) / 2) % tickEvery === 0 ? (
             <g key={t}>
-              <line x1={mid + sx(t)} x2={mid + sx(t)} y1={top - 4} y2={height - 6} stroke={t === 0 ? "var(--line-3)" : "var(--line)"} />
-              <text x={mid + sx(t)} y={top - 9} textAnchor="middle">
+              <line x1={mid + sx(t)} x2={mid + sx(t)} y1={top - 6} y2={height - 2} stroke={t === 0 ? "var(--line-3)" : "var(--line)"} />
+              <text x={mid + sx(t)} y={top - 12} textAnchor="middle">
                 {t > 0 ? `+${t}` : t}
               </text>
             </g>
@@ -53,47 +58,53 @@ export default function ContributionBars({ items, highlight }: { items: Contribu
           const y = top + i * rowH;
           const w = Math.abs(sx(r.value));
           const up = r.value > 0;
-          const color = r.value === 0 ? "var(--line-3)" : up ? "var(--risk-up)" : "var(--risk-down)";
+          const color = r.value === 0 ? "var(--line-3)" : up ? "var(--up)" : "var(--down)";
           const meta = featureMeta(r.key);
-          const isHi = highlight === r.key;
           return (
-            <g key={r.key}>
-              {isHi && <rect x={0} y={y + 1} width={width} height={rowH - 2} fill="var(--surface-2)" rx={3} />}
-              <text x={0} y={y + (compact ? 15 : rowH / 2 + 1)} dominantBaseline={compact ? undefined : "middle"} className="t-strong" style={{ fontFamily: "var(--font-body)", fontSize: 12.5 }}>
+            <g
+              key={r.key}
+              data-active={active === i ? "true" : undefined}
+              data-dim={active !== null && active !== i ? "true" : undefined}
+              onPointerEnter={() => {
+                setActive(i);
+                show(
+                  up ? mid + w : mid - w,
+                  y + (rowH - barH) / 2,
+                  <TipValue
+                    value={`${fmtSigned(r.value)} pts`}
+                    label={featureLabel(r.key)}
+                    sub={`${up ? "Raises" : "Lowers"} risk · input ${formatFeatureValue(meta, r.input)}`}
+                  />,
+                );
+              }}
+            >
+              <rect x={0} y={y} width={width} height={rowH} className="hit" />
+              <text x={0} y={y + (compact ? 16 : rowH / 2 + 1)} dominantBaseline={compact ? undefined : "middle"} className="t-body t-ink">
                 {featureLabel(r.key)}
               </text>
               {r.input !== undefined && (
-                <text
-                  x={compact ? 0 : labelW}
-                  y={compact ? y + 29 : y + rowH / 2 + 1}
-                  textAnchor={compact ? "start" : "end"}
-                  dominantBaseline={compact ? undefined : "middle"}
-                >
+                <text x={compact ? 0 : labelW} y={compact ? y + 31 : y + rowH / 2 + 1} textAnchor={compact ? "start" : "end"} dominantBaseline={compact ? undefined : "middle"}>
                   {formatFeatureValue(meta, r.input)}
                 </text>
               )}
               <rect
+                className={`hover-lift anim-bar-x${up ? "" : " from-right"}`}
+                style={{ "--i": i } as React.CSSProperties}
                 x={up ? mid : mid - w}
-                y={y + rowH / 2 - 7}
-                width={Math.max(w, r.value === 0 ? 0 : 1.5)}
-                height={14}
-                rx={2}
+                y={y + (rowH - barH) / 2}
+                width={Math.max(w, 2)}
+                height={barH}
+                rx={4}
                 fill={color}
-                opacity={0.9}
               />
-              <text
-                x={width}
-                y={y + rowH / 2 + 1}
-                textAnchor="end"
-                dominantBaseline="middle"
-                style={{ fill: r.value === 0 ? "var(--text-3)" : color, fontSize: 12 }}
-              >
+              <text x={width} y={y + rowH / 2 + 1} textAnchor="end" dominantBaseline="middle" className="t-ink" style={{ fontSize: 12 }}>
                 {fmtSigned(r.value)}
               </text>
             </g>
           );
         })}
       </svg>
+      <Tooltip tip={tip} width={width} />
     </div>
   );
 }

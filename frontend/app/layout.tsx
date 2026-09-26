@@ -1,28 +1,29 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans, Schibsted_Grotesk } from "next/font/google";
+import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AnalysisProvider } from "@/lib/analysis-store";
+import { ToastProvider } from "@/components/ui/Toast";
 import { TourProvider } from "@/components/tour/TourProvider";
 import AppShell from "@/components/shell/AppShell";
 
-const display = Schibsted_Grotesk({
+const display = Bricolage_Grotesque({
   subsets: ["latin"],
   weight: ["500", "600", "700"],
-  variable: "--font-schibsted",
+  variable: "--font-bricolage",
   display: "swap",
 });
 
-const body = IBM_Plex_Sans({
+const body = Geist({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
-  variable: "--font-plex-sans",
+  variable: "--font-geist",
   display: "swap",
 });
 
-const mono = IBM_Plex_Mono({
+const mono = Geist_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
-  variable: "--font-plex-mono",
+  variable: "--font-geist-mono",
   display: "swap",
 });
 
@@ -36,7 +37,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0c0f",
+  themeColor: "#06070a",
   colorScheme: "dark",
 };
 
@@ -44,11 +45,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
       <body>
-        <AnalysisProvider>
-          <TourProvider>
-            <AppShell>{children}</AppShell>
-          </TourProvider>
-        </AnalysisProvider>
+        <ToastProvider>
+          <AnalysisProvider>
+            <TourProvider>
+              <AppShell>{children}</AppShell>
+            </TourProvider>
+          </AnalysisProvider>
+        </ToastProvider>
       </body>
     </html>
   );

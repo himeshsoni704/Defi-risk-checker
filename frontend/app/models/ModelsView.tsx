@@ -2,7 +2,7 @@
 
 import { useComparison, useHealth } from "@/lib/queries";
 import MetricBars, { type MetricSeries } from "@/components/charts/MetricBars";
-import { Chip, EmptyState, ErrorState, Notice, Panel, SkeletonBlock } from "@/components/ui/primitives";
+import { Card, EmptyState, ErrorState, Notice, SkeletonBlock, Tag } from "@/components/ui/primitives";
 import { fmtDateTime, fmtNumber } from "@/lib/format";
 import type { ModelComparison, ModelMetrics } from "@/lib/types";
 
@@ -12,7 +12,8 @@ const METRICS = [
   { key: "auc", label: "ROC AUC" },
 ];
 
-const SERIES_COLORS = ["var(--accent)", "#b9a3e8", "#6fc7c1", "#e0b56c", "#9aa6b2"];
+// Validated categorical order: QSVC first, then baselines in API order.
+const SERIES_COLORS = ["var(--m1)", "var(--m2)", "var(--m3)"];
 
 function isQuantum(name: string) {
   return /qsvc|quantum/i.test(name);
@@ -47,7 +48,7 @@ export default function ModelsView() {
     <main className="page">
       <div className="page-head">
         <div className="page-head-text">
-          <span className="eyebrow">Reference</span>
+          <span className="kicker">Reference</span>
           <h1 className="page-title">Model comparison</h1>
           <p className="page-lede">
             Held-out test metrics for the quantum classifier that makes the decisions and the classical baselines trained on the same synthetic dataset. Values come
@@ -60,9 +61,9 @@ export default function ModelsView() {
         <ErrorState error={q.error} onRetry={() => q.refetch()} what="the model comparison" />
       ) : !q.data ? (
         <div className="stack">
-          <Panel tour="model-table">
+          <Card tour="model-table">
             <SkeletonBlock lines={5} />
-          </Panel>
+          </Card>
         </div>
       ) : (
         <ModelsBody data={q.data} trainedAt={health.data?.quantum_model.trained_at} />
@@ -75,15 +76,15 @@ function ModelsBody({ data, trainedAt }: { data: ModelComparison; trainedAt?: nu
   const { note, models } = parse(data);
   if (models.length === 0) {
     return (
-      <Panel>
+      <Card>
         <EmptyState title="No models reported">{note ?? "The API returned an empty comparison."}</EmptyState>
-      </Panel>
+      </Card>
     );
   }
 
   const series: MetricSeries[] = models.map((m, i) => ({
     name: m.name,
-    color: m.quantum ? "var(--accent)" : SERIES_COLORS[(i % (SERIES_COLORS.length - 1)) + 1],
+    color: SERIES_COLORS[i] ?? "var(--ink-3)",
     values: { accuracy: m.accuracy, f1: m.f1, auc: m.auc },
   }));
   const quantum = models.find((m) => m.quantum);
@@ -98,7 +99,7 @@ function ModelsBody({ data, trainedAt }: { data: ModelComparison; trainedAt?: nu
         </Notice>
       )}
 
-      <Panel title="Test-set metrics" sub="One row per model returned by the API" tight tour="model-table">
+      <Card title="Test-set metrics" sub="One row per model returned by GET /compare" flush tour="model-table" i={1}>
         <div className="table-wrap">
           <table className="table">
             <thead>
@@ -117,9 +118,9 @@ function ModelsBody({ data, trainedAt }: { data: ModelComparison; trainedAt?: nu
                 <tr key={m.name}>
                   <td>
                     <span className="row" style={{ gap: 8, flexWrap: "nowrap" }}>
-                      <span className="legend-swatch" style={{ background: series.find((s) => s.name === m.name)?.color }} />
+                      <span className="swatch" style={{ background: series.find((s) => s.name === m.name)?.color }} />
                       <span style={{ fontWeight: 500, whiteSpace: "nowrap" }}>{m.name}</span>
-                      {m.quantum && <Chip tone="accent">in production</Chip>}
+                      {m.quantum && <Tag tone="iris">makes the decisions</Tag>}
                     </span>
                   </td>
                   <td className="r">{fmtNumber(m.accuracy, 4)}</td>
@@ -137,23 +138,23 @@ function ModelsBody({ data, trainedAt }: { data: ModelComparison; trainedAt?: nu
             </tbody>
           </table>
         </div>
-      </Panel>
+      </Card>
 
-      <div className="grid grid-main-side">
-        <Panel title="Side by side" sub="Axis fixed at 0–1">
+      <div className="grid g-main">
+        <Card title="Side by side" sub="Axis fixed at 0–1 so gaps are not exaggerated. Hover a bar." i={2}>
           <div className="stack" style={{ gap: 14 }}>
             <MetricBars metrics={METRICS} series={series} />
             <div className="legend">
               {series.map((s) => (
                 <span className="legend-item" key={s.name}>
-                  <span className="legend-swatch" style={{ background: s.color }} /> {s.name}
+                  <span className="swatch" style={{ background: s.color }} /> {s.name}
                 </span>
               ))}
             </div>
           </div>
-        </Panel>
+        </Card>
 
-        <Panel title="Reading the comparison">
+        <Card title="Reading the comparison" i={3}>
           <div className="prose" style={{ fontSize: 13 }}>
             {quantum && bestClassical && quantum.accuracy !== undefined && bestClassical.accuracy !== undefined && (
               <p>
@@ -177,7 +178,7 @@ function ModelsBody({ data, trainedAt }: { data: ModelComparison; trainedAt?: nu
             </p>
             {trainedAt !== undefined && trainedAt !== null && <p className="faint">QSVC trained {fmtDateTime(trainedAt)}.</p>}
           </div>
-        </Panel>
+        </Card>
       </div>
     </>
   );

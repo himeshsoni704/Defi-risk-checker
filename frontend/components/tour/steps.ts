@@ -25,7 +25,7 @@ export const TOUR_STEPS: TourStep[] = [
     target: "system-status",
     title: "System status",
     body:
-      "Read from GET /health every 30 seconds: whether the API is up, which QSVC model is loaded, whether proofs go to live Sepolia or the simulated provider, and how many decisions the server has cached.",
+      "A live strip from GET /health, refreshed every 30 seconds: API latency, the loaded QSVC model, whether proofs go to live Sepolia or the simulated provider, and how many decisions the server holds.",
   },
   {
     id: "quick",
@@ -34,6 +34,14 @@ export const TOUR_STEPS: TourStep[] = [
     title: "Start with a wallet",
     body:
       "Paste any 0x address or pick one of the sample wallets. Addresses that exist in the 2,000-row dataset use their recorded features; unknown addresses fall back to the backend's neutral default profile, and the app tells you when that happens.",
+  },
+  {
+    id: "field",
+    route: "dashboard",
+    target: "dataset-field",
+    title: "The dataset at a glance",
+    body:
+      "200 wallets from GET /wallets, placed by wallet age and repayment ratio and colored by their ground-truth label. Hover any point for its features; click it to analyze that wallet. Wallets you have scored get a ring and their score.",
   },
   {
     id: "samples",
@@ -52,12 +60,19 @@ export const TOUR_STEPS: TourStep[] = [
       "Every wallet you score in this browser is listed here with its score, decision and audit verdict, so you can jump back into its explanation or proof.",
   },
   {
+    id: "command",
+    route: "dashboard",
+    target: "command",
+    title: "Jump anywhere with ⌘K",
+    body: "Paste an address to analyze it, or search pages, recent analyses and dataset wallets. Works from every page with ⌘K or Ctrl+K.",
+  },
+  {
     id: "flow-nav",
     route: "dashboard",
     target: "nav-flow",
     title: "The four-step flow",
     body:
-      "Assessment → Explanation → Audit → Verification. The dots show how far the active wallet has gone. The tour now opens the assessment page with a sample wallet.",
+      "Assessment → Explanation → Audit → Verification. Steps fill in as the active wallet moves through them. Next, the tour opens the assessment for a dataset wallet.",
   },
   {
     id: "assess-input",

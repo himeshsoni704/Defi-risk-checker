@@ -53,19 +53,19 @@ export default function ScenarioEditor({
         Scenario mode: set feature values yourself
       </label>
       {open && (
-        <form onSubmit={submit} className="stack fade-in" style={{ gap: 12 }} noValidate>
+        <form onSubmit={submit} className="stack rise" style={{ gap: 12 }} noValidate>
           <p className="faint" style={{ fontSize: 12.5 }}>
             Prefilled from {base ? "the current result" : "the backend's default profile"}. Scoring a scenario replaces this wallet&apos;s stored decision on the
             server, so the explanation, audit and proof pages will reflect it.
           </p>
-          <div className="grid grid-2" style={{ gap: 10 }}>
+          <div className="grid g-2" style={{ gap: 10 }}>
             {FEATURES.map((f) => {
               const err = errors[f.key];
               return (
                 <div className="field" key={f.key}>
                   <label className="field-label" htmlFor={`${id}-${f.key}`} style={{ fontSize: 12 }}>
                     {f.label}
-                    {f.quantum && <span style={{ color: "var(--accent)" }}> · circuit</span>}
+                    {f.quantum && <span style={{ color: "var(--iris-2)" }}> · circuit</span>}
                   </label>
                   {f.format === "flag" ? (
                     <select

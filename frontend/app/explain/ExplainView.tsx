@@ -7,9 +7,8 @@ import WalletHeader from "@/components/wallet/WalletHeader";
 import NoWallet from "@/components/wallet/NoWallet";
 import Waterfall from "@/components/charts/Waterfall";
 import ContributionBars from "@/components/charts/ContributionBars";
-import RiskScale from "@/components/charts/RiskScale";
 import LLMPanel from "./LLMPanel";
-import { Chip, ErrorState, Notice, Panel, SkeletonBlock, Stat } from "@/components/ui/primitives";
+import { Card, CountUp, ErrorState, Notice, SkeletonBlock, Tag } from "@/components/ui/primitives";
 import Icon from "@/components/ui/Icon";
 import { featureLabel, featureMeta, formatFeatureValue, RISK_THRESHOLD } from "@/lib/features";
 import { fmtNumber, fmtSigned } from "@/lib/format";
@@ -28,37 +27,37 @@ export default function ExplainView({ urlWallet }: { urlWallet?: string }) {
     <main className="page">
       <div className="page-head">
         <div className="page-head-text">
-          <span className="eyebrow">Step 2 · Explanation</span>
-          <h1 className="page-title">Why the model scored it this way</h1>
-          <p className="page-lede">
-            SHAP splits the risk score into points contributed by each feature, starting from the score the model gives an average wallet.
-          </p>
+          <span className="kicker">
+            <span className="step-badge">2</span> Explanation
+          </span>
+          <h1 className="page-title">Why it scored this way</h1>
+          <p className="page-lede">SHAP splits the score into risk points per feature, starting from what the model gives an average wallet.</p>
         </div>
       </div>
 
       {!hydrated ? (
-        <Panel>
+        <Card>
           <SkeletonBlock lines={6} />
-        </Panel>
+        </Card>
       ) : !wallet ? (
         <NoWallet page="explanation" description="SHAP attributions come from GET /explain/{wallet}" />
       ) : (
         <>
-          <WalletHeader wallet={wallet} current="explain" />
+          <WalletHeader wallet={wallet} />
           {isRunning ? (
-            <Notice tone="accent" icon="clock" title="Analysis in progress.">
-              The explanation will load when the new score is ready.
+            <Notice tone="iris" icon="clock" title="Analysis in progress.">
+              The explanation loads when the new score is ready.
             </Notice>
           ) : q.error && !q.data ? (
             <ErrorState error={q.error} onRetry={() => q.refetch()} what="the SHAP explanation" />
           ) : !q.data ? (
-            <div className="grid grid-main-side">
-              <Panel title="Loading explanation…" sub={`GET /explain/${wallet.slice(0, 10)}…`} tour="waterfall">
-                <SkeletonBlock lines={8} />
-              </Panel>
-              <Panel>
-                <SkeletonBlock lines={5} />
-              </Panel>
+            <div className="grid g-main">
+              <Card title="Computing attributions…" sub="GET /explain" tour="waterfall">
+                <SkeletonBlock lines={9} />
+              </Card>
+              <Card>
+                <SkeletonBlock lines={6} />
+              </Card>
             </div>
           ) : (
             <ExplainBody data={q.data} wallet={wallet} recordScore={record?.score.risk_score} />
@@ -73,18 +72,18 @@ function ExplainBody({ data, wallet, recordScore }: { data: ExplainResponse; wal
   const entries = Object.entries(data.feature_contributions);
   const active = entries.filter(([, v]) => v !== 0);
   const zero = entries.filter(([, v]) => v === 0);
-  const sum = active.reduce((a, [, v]) => a + v, 0);
   const ranked = [...active].sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
   const drivers = ranked.slice(0, 3);
   const up = active.filter(([, v]) => v > 0).reduce((a, [, v]) => a + v, 0);
   const down = active.filter(([, v]) => v < 0).reduce((a, [, v]) => a + v, 0);
   const mismatch = recordScore !== undefined && Math.abs(recordScore - data.risk_score) > 0.05;
+  const top = ranked[0];
 
   return (
     <>
       {recordScore === undefined && (
         <Notice title="Not analyzed in this browser.">
-          Showing the decision the server has stored for this wallet. If it had none, the server scored the wallet to build this explanation.{" "}
+          Showing the decision the server has stored for this wallet (it scores the wallet first if it had none).{" "}
           <Link className="link" href={withWallet("/assess", wallet)}>
             Open the assessment
           </Link>
@@ -92,102 +91,135 @@ function ExplainBody({ data, wallet, recordScore }: { data: ExplainResponse; wal
       )}
       {mismatch && (
         <Notice tone="warn" title="Different result on the server.">
-          This browser last saw a score of {fmtNumber(recordScore)}, but the server&apos;s stored decision scores {fmtNumber(data.risk_score)}. The wallet was
-          probably re-scored elsewhere. This page shows the server&apos;s version.
+          This browser last saw {fmtNumber(recordScore)}, but the server&apos;s stored decision scores {fmtNumber(data.risk_score)}. The wallet was probably
+          re-scored elsewhere; this page shows the server&apos;s version.
         </Notice>
       )}
 
-      <div className="stat-row">
-        <Stat label="Expected value (base)" value={fmtNumber(data.base_risk_value)} note="Model output for the SHAP background" />
-        <Stat label="Pushes toward deny" value={fmtSigned(up)} tone={up > 0 ? "neg" : undefined} note="Sum of positive attributions" />
-        <Stat label="Pulls toward approve" value={fmtSigned(down)} tone={down < 0 ? "pos" : undefined} note="Sum of negative attributions" />
-        <Stat
-          label="Risk score"
-          value={fmtNumber(data.risk_score)}
-          note={
-            <span className="row" style={{ gap: 6 }}>
-              <Chip tone={decisionTone(data.decision)}>{data.decision}</Chip>
-            </span>
-          }
-        />
-      </div>
+      <section className="card rise" style={{ "--i": 2, padding: "26px 26px 22px" } as React.CSSProperties}>
+        <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 22, alignItems: "end" }}>
+          <div style={{ gridColumn: "span 2", minWidth: 0 }}>
+            <div className="faint small">In one line</div>
+            <p className="display" style={{ fontSize: "clamp(22px, 2.6vw, 30px)", marginTop: 8, lineHeight: 1.15 }}>
+              From a baseline of {fmtNumber(data.base_risk_value)} to{" "}
+              <span style={{ color: data.risk_score >= RISK_THRESHOLD ? "var(--bad)" : "var(--good)" }}>{fmtNumber(data.risk_score)}</span>
+              {top ? (
+                <>
+                  , mostly because of <span style={{ color: top[1] > 0 ? "var(--up)" : "var(--down)" }}>{featureLabel(top[0]).toLowerCase()}</span>.
+                </>
+              ) : (
+                "."
+              )}
+            </p>
+          </div>
+          <div>
+            <div className="faint small">Pushes toward deny</div>
+            <div className="strip-value" style={{ fontSize: 28 }}>
+              {up > 0 ? "+" : ""}
+              <CountUp value={up} />
+            </div>
+            <div className="row" style={{ gap: 6 }}>
+              <span className="key-line" style={{ background: "var(--up)" }} />
+              <span className="faint small">sum of positive points</span>
+            </div>
+          </div>
+          <div>
+            <div className="faint small">Pulls toward approve</div>
+            <div className="strip-value" style={{ fontSize: 28 }}>
+              <CountUp value={down} />
+            </div>
+            <div className="row" style={{ gap: 6 }}>
+              <span className="key-line" style={{ background: "var(--down)" }} />
+              <span className="faint small">sum of negative points</span>
+            </div>
+          </div>
+          <div>
+            <div className="faint small">Model decision</div>
+            <div style={{ marginTop: 8 }}>
+              <Tag tone={decisionTone(data.decision)} icon large>
+                {data.decision}
+              </Tag>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <div className="grid grid-main-side">
+      <div className="grid g-main">
         <div className="stack">
-          <Panel
+          <Card
             title="From baseline to score"
-            sub={`Base ${fmtNumber(data.base_risk_value)} ${fmtSigned(sum)} from features = ${fmtNumber(data.base_risk_value + sum)} · model score ${fmtNumber(data.risk_score)}`}
+            sub="Each step adds one feature's attribution. Hover a bar for details."
             tour="waterfall"
-          >
-            <div className="stack" style={{ gap: 14 }}>
-              <Waterfall base={data.base_risk_value} contributions={data.feature_contributions} score={data.risk_score} />
+            i={3}
+            actions={
               <div className="legend">
                 <span className="legend-item">
-                  <span className="legend-swatch" style={{ background: "var(--risk-up)" }} /> raises risk
+                  <span className="swatch" style={{ background: "var(--up)" }} /> raises risk
                 </span>
                 <span className="legend-item">
-                  <span className="legend-swatch" style={{ background: "var(--risk-down)" }} /> lowers risk
-                </span>
-                <span className="legend-item">
-                  <span className="legend-swatch" style={{ background: "transparent", borderTop: "1px dashed var(--text-2)", height: 0 }} /> deny threshold {RISK_THRESHOLD}
+                  <span className="swatch" style={{ background: "var(--down)" }} /> lowers risk
                 </span>
               </div>
-            </div>
-          </Panel>
+            }
+          >
+            <Waterfall base={data.base_risk_value} contributions={data.feature_contributions} inputs={data.input_features} score={data.risk_score} />
+            <p className="faint small" style={{ marginTop: 12 }}>
+              Dotted line: deny threshold at {RISK_THRESHOLD}.
+            </p>
+          </Card>
 
-          <Panel title="Feature contributions" sub="Risk points per feature, largest first, with the wallet's input value" tour="contributions">
+          <Card title="Feature contributions" sub="Ranked by size, with the input value behind each one" tour="contributions" i={4}>
             <div className="stack" style={{ gap: 14 }}>
               <ContributionBars items={active.map(([k, v]) => ({ key: k, value: v, input: data.input_features[k] }))} />
               {zero.length > 0 && (
-                <p className="faint" style={{ fontSize: 12.5 }}>
-                  0.0 for {zero.map(([k]) => featureLabel(k)).join(", ")}. These features are recorded but are not inputs to the quantum circuit, so they
-                  cannot affect this model&apos;s score.
+                <p className="faint small">
+                  0.0 for {zero.map(([k]) => featureLabel(k)).join(", ")}: recorded, but not inputs to the quantum circuit, so they cannot move this model&apos;s
+                  score.
                 </p>
               )}
             </div>
-          </Panel>
+          </Card>
         </div>
 
         <div className="stack">
-          <Panel title="Key drivers" sub="The three largest attributions">
+          <Card title="Key drivers" sub="The three largest attributions" i={3}>
             {drivers.length === 0 ? (
               <p className="muted">Every attribution is zero: the score equals the base value.</p>
             ) : (
-              <ol className="def-list" style={{ margin: 0, padding: 0, listStyle: "none" }}>
-                {drivers.map(([k, v]) => {
+              <div>
+                {drivers.map(([k, v], i) => {
                   const meta = featureMeta(k);
                   return (
-                    <li key={k} className="def-item">
-                      <span className="row" style={{ justifyContent: "space-between" }}>
-                        <span className="def-term">{featureLabel(k)}</span>
-                        <span className={`mono ${v > 0 ? "delta-up" : "delta-down"}`}>{fmtSigned(v)} pts</span>
-                      </span>
-                      <span className="def-desc">
-                        At {formatFeatureValue(meta, data.input_features[k])}, this feature {v > 0 ? "raised" : "lowered"} the score by{" "}
-                        {Math.abs(v).toFixed(1)} points relative to the baseline.
-                      </span>
-                    </li>
+                    <div key={k} className="driver">
+                      <span className="driver-rank">{i + 1}</span>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontWeight: 600 }}>{featureLabel(k)}</div>
+                        <div className="faint small" style={{ marginTop: 3 }}>
+                          At {formatFeatureValue(meta, data.input_features[k])}, it {v > 0 ? "raised" : "lowered"} the score by {Math.abs(v).toFixed(1)} points.
+                        </div>
+                      </div>
+                      <div className="driver-value">
+                        <Icon name={v > 0 ? "arrowUp" : "arrowDown"} />
+                        <span style={{ color: v > 0 ? "var(--up)" : "var(--down)" }}>{fmtSigned(v)}</span>
+                      </div>
+                    </div>
                   );
                 })}
-              </ol>
+              </div>
             )}
-          </Panel>
+          </Card>
 
           <LLMPanel wallet={wallet} />
 
-          <Panel title="Reading SHAP values">
-            <div className="prose" style={{ fontSize: 13 }}>
+          <Card title="Reading SHAP values" i={5}>
+            <div className="prose">
               <p>
-                Attributions are in <strong>risk points</strong>. They add up, together with the base value, to the model&apos;s score. Kernel SHAP estimates
-                them by sampling (32 samples here), so a small residual can remain.
+                Attributions are in <strong>risk points</strong> and add up, with the base value, to the model&apos;s score. Kernel SHAP estimates them from 32
+                samples, so a small residual can remain.
               </p>
-              <p>
-                An attribution tells you what moved <em>this</em> score, not how the feature behaves in general. Whether it can be trusted is what the audit
-                checks next.
-              </p>
+              <p>They explain this one score, not how a feature behaves in general. Whether they can be trusted is what the audit tests next.</p>
             </div>
-          </Panel>
-          <RiskScaleCard base={data.base_risk_value} score={data.risk_score} />
+          </Card>
         </div>
       </div>
 
@@ -200,13 +232,5 @@ function ExplainBody({ data, wallet, recordScore }: { data: ExplainResponse; wal
         </Link>
       </div>
     </>
-  );
-}
-
-function RiskScaleCard({ base, score }: { base: number; score: number }) {
-  return (
-    <Panel title="Baseline vs. score" sub="Hollow marker: expected value · solid marker: this wallet">
-      <RiskScale score={score} baseValue={base} />
-    </Panel>
   );
 }

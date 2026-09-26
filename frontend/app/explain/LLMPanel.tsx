@@ -4,7 +4,7 @@ import { useState } from "react";
 import { api } from "@/lib/api";
 import { hasQueryData, useQuery } from "@/lib/query";
 import { walletKey } from "@/lib/analysis-store";
-import { ErrorState, Notice, Panel, SkeletonBlock } from "@/components/ui/primitives";
+import { Card, ErrorState, Notice, SkeletonBlock } from "@/components/ui/primitives";
 import Icon from "@/components/ui/Icon";
 
 // Placeholder texts the backend returns instead of an explanation
@@ -23,7 +23,8 @@ export default function LLMPanel({ wallet }: { wallet: string }) {
   const failed = llm?.summary.startsWith(FAILED_PREFIX);
 
   return (
-    <Panel
+    <Card
+      i={4}
       title={
         <>
           <Icon name="sparkle" className="nav-icon" /> Plain-English explanation
@@ -68,15 +69,15 @@ export default function LLMPanel({ wallet }: { wallet: string }) {
           results on this page do not depend on it.
         </Notice>
       ) : failed ? (
-        <Notice tone="neg" title="The language model call failed.">
+        <Notice tone="bad" title="The language model call failed.">
           {llm.summary.replace(FAILED_PREFIX + ":", "").trim()}
         </Notice>
       ) : (
-        <div className="stack fade-in" style={{ gap: 14 }}>
+        <div className="stack rise" style={{ gap: 14 }}>
           <p style={{ fontSize: 14, lineHeight: 1.6 }}>{llm.summary}</p>
           {llm.key_drivers.length > 0 && (
             <div className="field">
-              <span className="eyebrow">Key drivers</span>
+              <span className="faint small">Key drivers</span>
               <ul className="bullets">
                 {llm.key_drivers.map((d, i) => (
                   <li key={i}>{d}</li>
@@ -85,13 +86,13 @@ export default function LLMPanel({ wallet }: { wallet: string }) {
             </div>
           )}
           <div className="field">
-            <span className="eyebrow">About the audit</span>
+            <span className="faint small">About the audit</span>
             <p className="muted" style={{ fontSize: 13 }}>
               {llm.audit_context}
             </p>
           </div>
           <div className="field">
-            <span className="eyebrow">DeFi principle</span>
+            <span className="faint small">DeFi principle</span>
             <p className="muted" style={{ fontSize: 13 }}>
               {llm.defi_principle}
             </p>
@@ -101,6 +102,6 @@ export default function LLMPanel({ wallet }: { wallet: string }) {
           </p>
         </div>
       )}
-    </Panel>
+    </Card>
   );
 }

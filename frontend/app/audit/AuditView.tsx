@@ -7,11 +7,12 @@ import WalletHeader from "@/components/wallet/WalletHeader";
 import NoWallet from "@/components/wallet/NoWallet";
 import RiskShiftChart from "@/components/charts/RiskShiftChart";
 import CorrelationChart from "@/components/charts/CorrelationChart";
-import { Bool, Chip, EmptyState, ErrorState, Notice, Panel, SkeletonBlock } from "@/components/ui/primitives";
+import { Bool, Card, EmptyState, ErrorState, Notice, SkeletonBlock, Tag } from "@/components/ui/primitives";
+import RingMeter from "@/components/charts/RingMeter";
 import Icon from "@/components/ui/Icon";
 import { AUDIT_RULES, featureLabel, featureMeta, formatFeatureValue } from "@/lib/features";
 import { fmtNumber, fmtSigned } from "@/lib/format";
-import { dimensionTone, overallTone, titleCase, toneVar } from "@/lib/verdicts";
+import { dimensionTone, overallTone, sentenceCase, toneVar } from "@/lib/verdicts";
 import { withWallet } from "@/components/shell/nav";
 import type { AuditReport } from "@/lib/types";
 
@@ -25,7 +26,9 @@ export default function AuditView({ urlWallet }: { urlWallet?: string }) {
     <main className="page">
       <div className="page-head">
         <div className="page-head-text">
-          <span className="eyebrow">Step 3 · XAI audit</span>
+          <span className="kicker">
+            <span className="step-badge">3</span> XAI audit
+          </span>
           <h1 className="page-title">Does the explanation hold up?</h1>
           <p className="page-lede">
             SHAP values are estimates. The audit tests them against the model itself with three independent experiments, then reports what passed and what
@@ -35,30 +38,30 @@ export default function AuditView({ urlWallet }: { urlWallet?: string }) {
       </div>
 
       {!hydrated ? (
-        <Panel>
+        <Card>
           <SkeletonBlock lines={6} />
-        </Panel>
+        </Card>
       ) : !wallet ? (
         <NoWallet page="audit" description="Audit results come from GET /audit/{wallet}" />
       ) : (
         <>
-          <WalletHeader wallet={wallet} current="audit" />
+          <WalletHeader wallet={wallet} />
           {isRunning ? (
-            <Notice tone="accent" icon="clock" title="Analysis in progress.">
+            <Notice tone="iris" icon="clock" title="Analysis in progress.">
               The audit will load when the new score is ready.
             </Notice>
           ) : q.error && !q.data ? (
             <ErrorState error={q.error} onRetry={() => q.refetch()} what="the audit report" />
           ) : !q.data ? (
             <div className="stack">
-              <Panel tour="audit-verdict">
+              <Card tour="audit-verdict">
                 <SkeletonBlock lines={3} />
-              </Panel>
-              <div className="grid grid-3" data-tour="audit-dimensions">
+              </Card>
+              <div className="grid g-3" data-tour="audit-dimensions">
                 {[0, 1, 2].map((i) => (
-                  <Panel key={i}>
+                  <Card key={i}>
                     <SkeletonBlock lines={5} />
-                  </Panel>
+                  </Card>
                 ))}
               </div>
             </div>
@@ -89,33 +92,41 @@ function AuditBody({ audit, wallet, analyzedHere }: { audit: AuditReport; wallet
         </Notice>
       )}
 
-      <section className="verdict-banner fade-in" data-tone={tone} data-tour="audit-verdict">
-        <div>
-          <div className="eyebrow">Overall verdict</div>
+      <section className="verdict-hero rise" data-tone={tone === "neutral" ? undefined : tone} data-tour="audit-verdict" style={{ "--i": 2 } as React.CSSProperties}>
+        <div className="stack" style={{ gap: 14 }}>
+          <div className="faint small">Overall verdict</div>
           <div className="verdict-word" style={{ color: toneVar(tone) }}>
-            {titleCase(audit.overall_verdict)}
+            {sentenceCase(audit.overall_verdict)}
           </div>
+          <p style={{ color: "var(--ink)", maxWidth: "62ch", fontSize: 15 }}>{audit.overall_description}</p>
         </div>
-        <div className="stack" style={{ gap: 10 }}>
-          <p style={{ color: "var(--text)", maxWidth: "70ch" }}>{audit.overall_description}</p>
-          <div className="row">
-            <Chip tone={dimensionTone(f.verdict)}>Faithfulness {String(f.verdict).toLowerCase()}</Chip>
-            <Chip tone={dimensionTone(st.verdict)}>Stability {String(st.verdict).toLowerCase()}</Chip>
-            <Chip tone={dimensionTone(se.verdict)}>Sensitivity {String(se.verdict).toLowerCase()}</Chip>
-          </div>
+        <div className="row" style={{ gap: 18 }}>
+          {[
+            { n: "Faithfulness", d: f, frac: f.score, v: `${f.faithful_features ?? 0}/${f.tested_features ?? 0}` },
+            { n: "Stability", d: st, frac: Math.max(0, st.mean_rank_correlation ?? st.score), v: fmtNumber(st.mean_rank_correlation ?? st.score, 2) },
+            { n: "Sensitivity", d: se, frac: se.tested_features ? se.score : null, v: `${se.sensitive_features ?? 0}/${se.tested_features ?? 0}` },
+          ].map((m) => (
+            <div key={m.n} style={{ display: "grid", justifyItems: "center", gap: 8 }}>
+              <RingMeter fraction={m.frac} color={toneVar(dimensionTone(String(m.d.verdict)))} value={m.v} unit={String(m.d.verdict).toLowerCase()} />
+              <span className="small" style={{ fontWeight: 500 }}>
+                {m.n}
+              </span>
+            </div>
+          ))}
         </div>
       </section>
 
-      <div className="grid grid-3" data-tour="audit-dimensions">
+      <div className="grid g-3" data-tour="audit-dimensions">
         <Dimension
           name="Faithfulness"
           question="Do the features SHAP ranks highest actually move the prediction?"
           verdict={String(f.verdict)}
           value={`${f.faithful_features ?? "?"}/${f.tested_features ?? "?"}`}
-          valueNote="top features passed"
+          valueNote="passed"
+          i={3}
           fraction={f.score}
           marks={[
-            { at: AUDIT_RULES.ratioMedium, label: "med" },
+            { at: AUDIT_RULES.ratioMedium, label: "medium" },
             { at: AUDIT_RULES.ratioHigh, label: "high" },
           ]}
           rule={`The top ${AUDIT_RULES.faithfulnessTopK} features are each moved one step against their attribution. A feature passes when the risk changes by at least max(${AUDIT_RULES.faithfulnessMinDelta} pts, ${AUDIT_RULES.faithfulnessMinShare * 100}% of its attribution) and the direction check passes. High ≥ ${AUDIT_RULES.ratioHigh * 100}% pass, medium ≥ ${AUDIT_RULES.ratioMedium * 100}%.`}
@@ -124,11 +135,12 @@ function AuditBody({ audit, wallet, analyzedHere }: { audit: AuditReport; wallet
           name="Stability"
           question="Do nearly identical wallets get nearly identical explanations?"
           verdict={String(st.verdict)}
-          value={fmtNumber(st.mean_rank_correlation ?? st.score, 3)}
-          valueNote={`mean Spearman ρ, ${st.n_clones_tested ?? 0} clones`}
+          value={fmtNumber(st.mean_rank_correlation ?? st.score, 2)}
+          valueNote="mean ρ"
+          i={4}
           fraction={Math.max(0, st.mean_rank_correlation ?? st.score)}
           marks={[
-            { at: AUDIT_RULES.stabilityMedium, label: "med" },
+            { at: AUDIT_RULES.stabilityMedium, label: "medium" },
             { at: AUDIT_RULES.stabilityHigh, label: "high" },
           ]}
           rule={`${AUDIT_RULES.stabilityClones} clones get Gaussian noise of ${AUDIT_RULES.stabilityNoiseStd * 100}% of each feature's range and are explained again. The feature ranking is compared with Spearman rank correlation. High ≥ ${AUDIT_RULES.stabilityHigh}, medium ≥ ${AUDIT_RULES.stabilityMedium}.`}
@@ -138,10 +150,11 @@ function AuditBody({ audit, wallet, analyzedHere }: { audit: AuditReport; wallet
           question="Does making a feature riskier actually raise the risk?"
           verdict={String(se.verdict)}
           value={`${se.sensitive_features ?? 0}/${se.tested_features ?? 0}`}
-          valueNote="features responded"
+          valueNote="responded"
+          i={5}
           fraction={se.tested_features ? se.score : null}
           marks={[
-            { at: AUDIT_RULES.ratioMedium, label: "med" },
+            { at: AUDIT_RULES.ratioMedium, label: "medium" },
             { at: AUDIT_RULES.ratioHigh, label: "high" },
           ]}
           rule={`Every feature with an attribution of at least ${AUDIT_RULES.sensitivityMinAttribution} pts is moved one step toward its risky extreme. It passes if the risk rises by ${AUDIT_RULES.sensitivityMinDelta} pts or more. High ≥ ${AUDIT_RULES.ratioHigh * 100}% pass, medium ≥ ${AUDIT_RULES.ratioMedium * 100}%.`}
@@ -149,13 +162,13 @@ function AuditBody({ audit, wallet, analyzedHere }: { audit: AuditReport; wallet
       </div>
 
       <FaithfulnessDetail audit={audit} />
-      <div className="grid grid-2">
+      <div className="grid g-2">
         <StabilityDetail audit={audit} />
         <SensitivityDetail audit={audit} />
       </div>
 
-      <div className="grid grid-main-side">
-        <Panel title="How the overall verdict is formed" sub="xai_auditor.py · _aggregate_verdict">
+      <div className="grid g-main">
+        <Card title="How the verdict is formed" sub="xai_auditor.py · _aggregate_verdict" flush i={9}>
           <div className="stack" style={{ gap: 14 }}>
             <div className="table-wrap">
               <table className="table">
@@ -175,7 +188,7 @@ function AuditBody({ audit, wallet, analyzedHere }: { audit: AuditReport; wallet
                     <tr key={n}>
                       <td>{n}</td>
                       <td>
-                        <Chip tone={dimensionTone(String(v))}>{String(v).toLowerCase()}</Chip>
+                        <Tag tone={dimensionTone(String(v))} icon>{String(v).toLowerCase()}</Tag>
                       </td>
                       <td className="r">{points[i]}</td>
                     </tr>
@@ -183,24 +196,24 @@ function AuditBody({ audit, wallet, analyzedHere }: { audit: AuditReport; wallet
                   <tr>
                     <td style={{ fontWeight: 600 }}>Average</td>
                     <td />
-                    <td className="r" style={{ color: "var(--text)" }}>
+                    <td className="r" style={{ color: "var(--ink)", fontWeight: 600 }}>
                       {avg.toFixed(2)}
                     </td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <p className="faint" style={{ fontSize: 12.5 }}>
+            <p className="faint small" style={{ padding: "0 22px 20px" }}>
               High = 2, medium = 1, low or unknown = 0. An average of 1.7 or more is <strong>Supported</strong>, 0.9 or more is{" "}
               <strong>Supported with caution</strong>, anything lower is <strong>Questionable</strong>.
             </p>
           </div>
-        </Panel>
-        <Panel title="Auditor summary" sub="summary_lines, verbatim from the API">
+        </Card>
+        <Card title="Auditor summary" sub="summary_lines, verbatim from the API" i={10}>
           <pre className="code-block" tabIndex={0}>
             {audit.summary_lines.join("\n")}
           </pre>
-        </Panel>
+        </Card>
       </div>
 
       <div className="row" style={{ justifyContent: "flex-end" }}>
@@ -224,6 +237,7 @@ function Dimension({
   fraction,
   marks,
   rule,
+  i,
 }: {
   name: string;
   question: string;
@@ -233,37 +247,38 @@ function Dimension({
   fraction: number | null;
   marks: { at: number; label: string }[];
   rule: string;
+  i: number;
 }) {
   const tone = dimensionTone(verdict);
   return (
-    <section className="panel">
+    <section className="card rise" style={{ "--i": i } as React.CSSProperties}>
       <div className="dim">
-        <div className="dim-head">
+        <div className="row between" style={{ alignItems: "flex-start", flexWrap: "nowrap" }}>
           <div>
-            <h3 style={{ fontSize: 15 }}>{name}</h3>
+            <h3 style={{ fontSize: 17, letterSpacing: "-0.01em" }}>{name}</h3>
             <p className="dim-q">{question}</p>
           </div>
-          <Chip tone={tone}>{verdict.toLowerCase()}</Chip>
+          <Tag tone={tone} icon>
+            {verdict.toLowerCase()}
+          </Tag>
         </div>
-        <div>
-          <span className="dim-score" style={{ color: toneVar(tone) }}>
-            {value}
-          </span>{" "}
-          <span className="faint" style={{ fontSize: 12.5 }}>
-            {valueNote}
-          </span>
-        </div>
-        <div style={{ paddingTop: 14 }}>
-          <div className="meter" role="img" aria-label={fraction === null ? "Not measured" : `${Math.round(fraction * 100)}%`}>
-            {fraction !== null && <div className="meter-fill" style={{ width: `${Math.min(1, fraction) * 100}%`, background: toneVar(tone) }} />}
-            {marks.map((m) => (
-              <span key={m.label} className="meter-mark" style={{ left: `${m.at * 100}%` }} data-label={m.label} />
-            ))}
+        <div className="dim-top">
+          <RingMeter fraction={fraction} color={toneVar(tone)} value={value} unit={valueNote} marks={marks.map((m) => m.at)} />
+          <div className="stack" style={{ gap: 6 }}>
+            {marks
+              .slice()
+              .reverse()
+              .map((m) => (
+                <div key={m.label} className="row small" style={{ gap: 8 }}>
+                  <span className="key-line" style={{ background: "var(--ink-2)", width: 10 }} />
+                  <span className="faint">
+                    {m.label} ≥ {m.at}
+                  </span>
+                </div>
+              ))}
           </div>
         </div>
-        <p className="faint" style={{ fontSize: 12.5 }}>
-          {rule}
-        </p>
+        <p className="rule">{rule}</p>
       </div>
     </section>
   );
@@ -272,18 +287,14 @@ function Dimension({
 function FaithfulnessDetail({ audit }: { audit: AuditReport }) {
   const rows = audit.faithfulness.perturb_results ?? [];
   return (
-    <Panel
-      title="Faithfulness experiments"
-      sub="Risk before (hollow) and after (filled) moving each top-attributed feature"
-      tight
-    >
+    <Card title="Faithfulness experiments" sub="Model risk before (hollow) and after (filled) moving each top-attributed feature" flush i={6}>
       {rows.length === 0 ? (
-        <div className="panel-body">
+        <div style={{ padding: "0 22px 18px" }}>
           <EmptyState title="No experiments recorded">The server returned no perturbation results for this wallet.</EmptyState>
         </div>
       ) : (
         <>
-          <div className="panel-body">
+          <div style={{ padding: "0 22px 18px" }}>
             <RiskShiftChart rows={rows.map((r) => ({ feature: r.feature, from: r.original_risk, to: r.new_risk, pass: r.faithful }))} />
           </div>
           <div className="table-wrap">
@@ -323,7 +334,7 @@ function FaithfulnessDetail({ audit }: { audit: AuditReport }) {
                         <Bool value={r.magnitude_sufficient} yes="enough" no="too small" />
                       </td>
                       <td>
-                        <Chip tone={r.faithful ? "pos" : "warn"}>{r.faithful ? "supported" : "questionable"}</Chip>
+                        <Tag tone={r.faithful ? "good" : "warn"} icon>{r.faithful ? "supported" : "questionable"}</Tag>
                       </td>
                     </tr>
                   );
@@ -332,13 +343,13 @@ function FaithfulnessDetail({ audit }: { audit: AuditReport }) {
             </table>
           </div>
           {rows.some((r) => r.original_value === r.perturbed_value) && (
-            <div className="panel-foot">
+            <div className="card-foot">
               <span>* The feature was already at the edge of its range, so the perturbation could not change it and the risk could not move.</span>
             </div>
           )}
         </>
       )}
-    </Panel>
+    </Card>
   );
 }
 
@@ -346,7 +357,7 @@ function StabilityDetail({ audit }: { audit: AuditReport }) {
   const s = audit.stability;
   const clones = s.clone_details ?? [];
   return (
-    <Panel title="Stability across clones" sub="Rank correlation between the original ranking and each clone">
+    <Card title="Stability across clones" sub="Rank correlation between the original ranking and each clone. Hover a bar." i={7}>
       {clones.length === 0 ? (
         <EmptyState title="No clones evaluated">
           The auditor could not compute any clone explanations for this wallet, so stability is scored as 0.
@@ -359,7 +370,7 @@ function StabilityDetail({ audit }: { audit: AuditReport }) {
           </p>
         </div>
       )}
-    </Panel>
+    </Card>
   );
 }
 
@@ -367,9 +378,9 @@ function SensitivityDetail({ audit }: { audit: AuditReport }) {
   const s = audit.sensitivity;
   const rows = s.feature_details ?? [];
   return (
-    <Panel title="Sensitivity checks" sub="Risk before and after worsening each strongly attributed feature" tight>
+    <Card title="Sensitivity checks" sub="Risk before and after worsening each strongly attributed feature" flush i={8}>
       {rows.length === 0 ? (
-        <div className="panel-body">
+        <div style={{ padding: "0 22px 18px" }}>
           <EmptyState title="Nothing to test">
             No feature had an attribution of {AUDIT_RULES.sensitivityMinAttribution} points or more, so the auditor had no feature to move. Sensitivity is
             reported as unknown and counts as 0 points in the overall verdict.
@@ -377,7 +388,7 @@ function SensitivityDetail({ audit }: { audit: AuditReport }) {
         </div>
       ) : (
         <>
-          <div className="panel-body">
+          <div style={{ padding: "0 22px 18px" }}>
             <RiskShiftChart rows={rows.map((r) => ({ feature: r.feature, from: r.original_risk, to: r.new_risk, pass: r.sensitive }))} />
           </div>
           <div className="table-wrap">
@@ -401,7 +412,7 @@ function SensitivityDetail({ audit }: { audit: AuditReport }) {
                       </td>
                       <td className={`r ${r.delta > 0 ? "delta-up" : r.delta < 0 ? "delta-down" : ""}`}>{fmtSigned(r.delta)}</td>
                       <td>
-                        <Chip tone={r.sensitive ? "pos" : "warn"}>{r.sensitive ? "sensitive" : "insensitive"}</Chip>
+                        <Tag tone={r.sensitive ? "good" : "warn"} icon>{r.sensitive ? "sensitive" : "insensitive"}</Tag>
                       </td>
                     </tr>
                   );
@@ -411,6 +422,6 @@ function SensitivityDetail({ audit }: { audit: AuditReport }) {
           </div>
         </>
       )}
-    </Panel>
+    </Card>
   );
 }
