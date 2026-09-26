@@ -1,0 +1,15 @@
+{
+  "model_type": "QSVC",
+  "feature_map": "ZZFeatureMap (reps=1, entanglement=linear, 4 qubits)",
+  "kernel": "FidelityQuantumKernel (Aer Statevector)",
+  "feature_names": [
+    "repayment_history_score",
+    "high_risk_tx_count",
+    "wallet_age_days",
+    "balance_stability_score"
+  ],
+  "n_train_samples": 52,
+  "test_accuracy": 0.6111111111111112,
+  "test_auc": 0.6790123456790124,
+  "risk_threshold": 50.0
+}
