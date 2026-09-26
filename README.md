@@ -2,8 +2,6 @@
 
 **Quantum Risk** scores DeFi wallets for credit risk with a **quantum machine-learning model**, explains every decision with **SHAP**, summarises it in plain English with **Google Gemini**, and anchors a **Keccak256 proof of the decision on the blockchain** (Ethereum Sepolia, or a built-in simulator).
 
-![Quantum Risk home page](docs/images/hero.png)
-
 ---
 
 ## Contents
