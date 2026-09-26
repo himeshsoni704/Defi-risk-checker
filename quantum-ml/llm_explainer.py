@@ -1,5 +1,5 @@
 """
-LLM Explanation Layer using Gemini 3.8 Flash, RAG, and Chain of Thought.
+LLM Explanation Layer using Gemini Flash, RAG, and Chain of Thought.
 Takes the SHAP attributions and XAI Audit results, retrieves relevant
 DeFi risk principles from the RAG knowledge base, and outputs a structured
 explanation of *why* the wallet received its risk score, backed by data.
@@ -11,7 +11,6 @@ from pydantic import BaseModel, Field
 
 try:
     from google import genai
-    from google.genai import types
 except ImportError:
     genai = None
 
@@ -122,18 +121,24 @@ INSTRUCTIONS (Chain of Thought):
 """
 
         try:
-            # We use 3.8-flash (fast, good at structured output + thought)
+            # Gemini Flash: fast and reliable for structured JSON output.
+            # The `interactions` API enforces structured output via `response_format`
+            # alone (the mime type goes inside it). Do NOT also pass a top-level
+            # `response_mime_type` -- the API rejects that combination.
             response = self.client.interactions.create(
                 model="gemini-3.8-flash",
                 input=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                    response_schema=LLMExplanation,
-                    temperature=0.2, # Keep it factual
-                )
+                response_format={
+                    "type": "text",
+                    "mime_type": "application/json",
+                    "schema": LLMExplanation.model_json_schema(),
+                },
             )
-            
-            # Pydantic will parse the JSON string back into our model
+
+            if not response.output_text:
+                raise ValueError("Gemini returned an empty response.")
+
+            # The response text is JSON that conforms to the schema above.
             return LLMExplanation.model_validate_json(response.output_text)
             
         except Exception as e:
