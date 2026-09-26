@@ -64,7 +64,7 @@ def run_all_tests():
     print("  -> Risk Score:", score_data["risk_score"])
     print("  -> Decision:", score_data["decision"])
     print("  -> Decision Hash:", score_data["decision_hash"])
-    assert score_data["decision"] in ["approve", "deny"]
+    assert score_data["decision"] in ["APPROVED", "DENIED"]
     assert score_data["decision_hash"].startswith("0x")
 
     # 4. Test POST /score with dataset lookup
@@ -83,7 +83,7 @@ def run_all_tests():
     explain_data = res.json()
     print("  -> Base Risk Value:", explain_data["base_risk_value"])
     print("  -> Feature Contributions:", explain_data["feature_contributions"])
-    for feat in ["repayment_history", "high_risk_tx", "wallet_age", "balance_stability"]:
+    for feat in ["repayment_ratio", "high_risk_tx", "wallet_age", "balance_stability"]:
         assert feat in explain_data["feature_contributions"], f"Missing {feat} in explanation"
 
     # 6. Test POST /verify/{wallet_id} (On-Chain Write)

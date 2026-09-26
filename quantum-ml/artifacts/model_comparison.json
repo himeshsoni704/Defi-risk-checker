@@ -1,0 +1,26 @@
+{
+  "XGBoost": {
+    "accuracy": 0.9975,
+    "f1": 0.9975,
+    "auc": 0.9999,
+    "inference_ms_per_sample": 0.65,
+    "n_features": 12,
+    "notes": "All 12 features, gradient boosted trees"
+  },
+  "Classical SVM": {
+    "accuracy": 0.9975,
+    "f1": 0.9975,
+    "auc": 0.9997,
+    "inference_ms_per_sample": 0.1,
+    "n_features": 12,
+    "notes": "RBF kernel SVM, all 12 features"
+  },
+  "QSVC (Quantum)": {
+    "accuracy": 0.7,
+    "f1": 0.7,
+    "auc": 0.86,
+    "inference_ms_per_sample": "N/A (simulation)",
+    "n_features": 6,
+    "notes": "ZZFeatureMap, 6 qubits, Aer statevector"
+  }
+}

@@ -129,8 +129,12 @@ class RiskOrchestrator:
     def list_sample_wallets(self, limit: int = 10) -> List[Dict[str, Any]]:
         if self.dataset.empty:
             return []
-        safe = self.dataset[self.dataset["label"] == 0].head(limit // 2)
-        risky = self.dataset[self.dataset["label"] == 1].head(limit // 2)
+        # Split the requested count across both classes so every limit works
+        # (previously odd limits dropped a wallet and limit=1 returned none).
+        n_safe = (max(limit, 0) + 1) // 2
+        n_risky = max(limit, 0) // 2
+        safe = self.dataset[self.dataset["label"] == 0].head(n_safe)
+        risky = self.dataset[self.dataset["label"] == 1].head(n_risky)
         combined = pd.concat([safe, risky])
         return combined[["wallet_address", "label"] + FEATURE_NAMES].to_dict(orient="records")
 
@@ -139,7 +143,7 @@ class RiskOrchestrator:
         if self._comparison_cache:
             return self._comparison_cache
         return {
-            "note": "Classical baseline not yet trained. Run `python -m quantum-ml.classical_baseline` to generate.",
+            "note": "Classical baseline not yet trained. Run `python quantum-ml/classical_baseline.py` to generate.",
             "QSVC (Quantum)": self.qml_model.metadata,
         }
 

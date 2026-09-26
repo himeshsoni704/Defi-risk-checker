@@ -176,7 +176,7 @@ def get_model_comparison():
       Classical SVM  vs  XGBoost  vs  QSVC (Quantum)
     Metrics: Accuracy, F1, AUC, Inference time.
 
-    Run `python -m quantum-ml.classical_baseline` to populate XGBoost / SVM results.
+    Run `python quantum-ml/classical_baseline.py` to populate XGBoost / SVM results.
     """
     return orchestrator.get_model_comparison()
 

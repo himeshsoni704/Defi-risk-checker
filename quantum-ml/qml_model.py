@@ -101,6 +101,11 @@ class QuantumRiskModel:
         arr = np.array(X_raw, dtype=float)
         if arr.ndim == 1:
             arr = arr.reshape(1, -1)
+        # If the caller already passed only the QML feature columns
+        # (e.g. the SHAP explainer works on the 6-feature subspace),
+        # use them as-is instead of re-indexing a full 12-feature vector.
+        if arr.shape[1] == len(QML_FEATURES):
+            return arr
         # Map by position: indices of QML_FEATURES within FEATURE_NAMES
         indices = [FEATURE_NAMES.index(f) for f in QML_FEATURES]
         return arr[:, indices]
@@ -194,7 +199,7 @@ def train_and_save_qml_model(
     auc = float(roc_auc_score(y_test, test_probs))
     f1 = float(f1_score(y_test, test_preds))
 
-    print(f"QSVC — Acc: {acc:.3f}  F1: {f1:.3f}  AUC: {auc:.3f}")
+    print(f"QSVC - Acc: {acc:.3f}  F1: {f1:.3f}  AUC: {auc:.3f}")
 
     trained_at = int(time.time())
     metadata = {
@@ -228,5 +233,5 @@ if __name__ == "__main__":
     risky_vec = [30, 15, 5.2, 0.22, 4, 35, 12, 2, 22, 11, 0.62, 1]
     s = model.predict_risk_score(safe_vec)[0]
     r = model.predict_risk_score(risky_vec)[0]
-    print(f"Safe profile → Score: {s}/100  Decision: {model.evaluate_decision(s)}")
-    print(f"Risky profile → Score: {r}/100  Decision: {model.evaluate_decision(r)}")
+    print(f"Safe profile -> Score: {s}/100  Decision: {model.evaluate_decision(s)}")
+    print(f"Risky profile -> Score: {r}/100  Decision: {model.evaluate_decision(r)}")

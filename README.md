@@ -6,6 +6,18 @@
 
 ---
 
+## Current Status & Known Issues
+
+The backend is a working MVP, but a few things are deliberately left for later work:
+
+- **Scoring is slow.** `/score` runs the full quantum → SHAP → audit pipeline on a CPU quantum *simulator* and can take **several minutes** per wallet. Treat it as a correctness demo of the pipeline, not a production scoring service. Speeding this up is the top priority before building a UI/demo on top.
+- **Models must be trained first.** The repo ships without a matching trained model. Run the setup steps below to regenerate the dataset and train the models.
+- **LLM explanations are optional.** The plain-English Gemini explanation stays disabled unless `GEMINI_API_KEY` is set.
+- **Blockchain is simulated by default.** Without `SEPOLIA_RPC_URL` / `PRIVATE_KEY` / `CONTRACT_ADDRESS`, proofs are written to a local simulated ledger (`data/local_ledger.json`).
+- **Windows notes.** `requirements.txt` now installs cleanly on Windows (uvloop is skipped there). If your console ever raises `UnicodeEncodeError`, run `set PYTHONUTF8=1` first.
+
+---
+
 ## Architecture
 
 ```
@@ -146,7 +158,7 @@ Classical SVM        X.XX      X.XX    X.XX    X.XXX ms/s
 XGBoost              X.XX      X.XX    X.XX    X.XXX ms/s
 QSVC (Quantum)       X.XX      X.XX    X.XX    sim only
 ```
-Run `python -m quantum-ml.classical_baseline` to populate with your hardware numbers.
+Run `python quantum-ml/classical_baseline.py` to populate with your hardware numbers.
 
 ### 6. Expanded dataset
 

@@ -1202,5 +1202,175 @@
       "wallet_age": 226.0,
       "balance_stability": 40.0
     }
+  },
+  "0x7d69bd4e9429ceb8fe21e78277372e93c0784092": {
+    "wallet_address": "0x7D69BD4E9429cEB8Fe21E78277372e93C0784092",
+    "risk_score": 46.2,
+    "decision": "approve",
+    "base_risk_value": 49.8,
+    "feature_contributions": {
+      "repayment_ratio": -1.0,
+      "high_risk_tx": -4.6,
+      "wallet_age": -0.6,
+      "balance_stability": -2.2,
+      "liquidations": 2.6,
+      "historical_default": 2.2,
+      "tx_count": 0.0,
+      "avg_tx_value": 0.0,
+      "borrow_count": 0.0,
+      "protocol_diversity": 0.0,
+      "failed_tx": 0.0,
+      "large_tx_ratio": 0.0
+    },
+    "input_features": {
+      "wallet_age": 269.0,
+      "tx_count": 351.0,
+      "avg_tx_value": 8.0996,
+      "repayment_ratio": 0.5843,
+      "liquidations": 1.0,
+      "borrow_count": 5.0,
+      "high_risk_tx": 1.0,
+      "protocol_diversity": 11.0,
+      "balance_stability": 85.88,
+      "failed_tx": 1.0,
+      "large_tx_ratio": 0.2775,
+      "historical_default": 0.0
+    }
+  },
+  "hash_f4dad5731f22aec6": {
+    "wallet_address": "0x7D69BD4E9429cEB8Fe21E78277372e93C0784092",
+    "risk_score": 46.2,
+    "decision": "approve",
+    "base_risk_value": 49.8,
+    "feature_contributions": {
+      "repayment_ratio": -1.0,
+      "high_risk_tx": -4.6,
+      "wallet_age": -0.6,
+      "balance_stability": -2.2,
+      "liquidations": 2.6,
+      "historical_default": 2.2,
+      "tx_count": 0.0,
+      "avg_tx_value": 0.0,
+      "borrow_count": 0.0,
+      "protocol_diversity": 0.0,
+      "failed_tx": 0.0,
+      "large_tx_ratio": 0.0
+    },
+    "input_features": {
+      "wallet_age": 269.0,
+      "tx_count": 351.0,
+      "avg_tx_value": 8.0996,
+      "repayment_ratio": 0.5843,
+      "liquidations": 1.0,
+      "borrow_count": 5.0,
+      "high_risk_tx": 1.0,
+      "protocol_diversity": 11.0,
+      "balance_stability": 85.88,
+      "failed_tx": 1.0,
+      "large_tx_ratio": 0.2775,
+      "historical_default": 0.0
+    }
+  },
+  "hash_02b811365a8655b3": {
+    "wallet_address": "custom_features",
+    "risk_score": 43.9,
+    "decision": "approve",
+    "base_risk_value": 49.8,
+    "feature_contributions": {
+      "repayment_ratio": -0.5,
+      "high_risk_tx": -3.3,
+      "wallet_age": -2.1,
+      "balance_stability": -4.7,
+      "liquidations": 1.9,
+      "historical_default": 2.9,
+      "tx_count": 0.0,
+      "avg_tx_value": 0.0,
+      "borrow_count": 0.0,
+      "protocol_diversity": 0.0,
+      "failed_tx": 0.0,
+      "large_tx_ratio": 0.0
+    },
+    "input_features": {
+      "wallet_age": 262.966562723564,
+      "tx_count": 354.20931547089856,
+      "avg_tx_value": 8.074117119527928,
+      "repayment_ratio": 0.5875216191421341,
+      "liquidations": 0.969920332721298,
+      "borrow_count": 5.292105915715481,
+      "high_risk_tx": 0.9838844047463655,
+      "protocol_diversity": 10.940002115579905,
+      "balance_stability": 86.17751775103828,
+      "failed_tx": 0.9070664947609318,
+      "large_tx_ratio": 0.28083640653494013,
+      "historical_default": 0.0
+    }
+  },
+  "0xtest": {
+    "wallet_address": "0xtest",
+    "risk_score": 41.7,
+    "decision": "approve",
+    "base_risk_value": 49.8,
+    "feature_contributions": {
+      "repayment_ratio": 2.0,
+      "high_risk_tx": -3.2,
+      "wallet_age": -2.1,
+      "balance_stability": 4.6,
+      "liquidations": -9.1,
+      "historical_default": -0.3,
+      "tx_count": 0.0,
+      "avg_tx_value": 0.0,
+      "borrow_count": 0.0,
+      "protocol_diversity": 0.0,
+      "failed_tx": 0.0,
+      "large_tx_ratio": 0.0
+    },
+    "input_features": {
+      "wallet_age": 650.0,
+      "tx_count": 120.0,
+      "avg_tx_value": 1.5,
+      "repayment_ratio": 0.91,
+      "liquidations": 0.0,
+      "borrow_count": 8.0,
+      "high_risk_tx": 1.0,
+      "protocol_diversity": 10.0,
+      "balance_stability": 78.0,
+      "failed_tx": 2.0,
+      "large_tx_ratio": 0.05,
+      "historical_default": 0.0
+    }
+  },
+  "hash_46869e12cfdc0e94": {
+    "wallet_address": "0xtest",
+    "risk_score": 41.7,
+    "decision": "approve",
+    "base_risk_value": 49.8,
+    "feature_contributions": {
+      "repayment_ratio": 2.0,
+      "high_risk_tx": -3.2,
+      "wallet_age": -2.1,
+      "balance_stability": 4.6,
+      "liquidations": -9.1,
+      "historical_default": -0.3,
+      "tx_count": 0.0,
+      "avg_tx_value": 0.0,
+      "borrow_count": 0.0,
+      "protocol_diversity": 0.0,
+      "failed_tx": 0.0,
+      "large_tx_ratio": 0.0
+    },
+    "input_features": {
+      "wallet_age": 650.0,
+      "tx_count": 120.0,
+      "avg_tx_value": 1.5,
+      "repayment_ratio": 0.91,
+      "liquidations": 0.0,
+      "borrow_count": 8.0,
+      "high_risk_tx": 1.0,
+      "protocol_diversity": 10.0,
+      "balance_stability": 78.0,
+      "failed_tx": 2.0,
+      "large_tx_ratio": 0.05,
+      "historical_default": 0.0
+    }
   }
 }

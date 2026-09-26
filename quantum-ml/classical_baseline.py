@@ -165,7 +165,7 @@ def train_classical_baseline(
             "trained_at": int(time.time()),
         })
         cm.save()
-        print(f"XGBoost — Acc: {results['XGBoost']['accuracy']}  "
+        print(f"XGBoost - Acc: {results['XGBoost']['accuracy']}  "
               f"F1: {results['XGBoost']['f1']}  AUC: {results['XGBoost']['auc']}")
 
     # ── 2. Classical SVM ──────────────────────────────────────────────
@@ -185,7 +185,7 @@ def train_classical_baseline(
         "n_features": len(FEATURE_NAMES),
         "notes": "RBF kernel SVM, all 12 features",
     }
-    print(f"Classical SVM — Acc: {results['Classical SVM']['accuracy']}  "
+    print(f"Classical SVM - Acc: {results['Classical SVM']['accuracy']}  "
           f"F1: {results['Classical SVM']['f1']}  AUC: {results['Classical SVM']['auc']}")
 
     # ── 3. Placeholder for QSVC (filled in after QML training) ───────
@@ -216,10 +216,10 @@ def print_comparison_table(results: Dict[str, Any]):
     print(f"{'Model':<22} {'Accuracy':>10} {'F1':>8} {'AUC':>8} {'Inference':>16}")
     print("-" * 76)
     for model_name, metrics in results.items():
-        acc = metrics.get("accuracy", "—")
-        f1 = metrics.get("f1", "—")
-        auc = metrics.get("auc", "—")
-        inf = metrics.get("inference_ms_per_sample", "—")
+        acc = metrics.get("accuracy", "-")
+        f1 = metrics.get("f1", "-")
+        auc = metrics.get("auc", "-")
+        inf = metrics.get("inference_ms_per_sample", "-")
         if isinstance(inf, float):
             inf = f"{inf:.3f} ms/s"
         print(f"{model_name:<22} {str(acc):>10} {str(f1):>8} {str(auc):>8} {str(inf):>16}")
